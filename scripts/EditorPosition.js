@@ -1,4 +1,7 @@
 define(["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.EditorPosition = void 0;
     var EditorPosition = (function () {
         function EditorPosition(editor) {
             var _this = this;
@@ -81,6 +84,6 @@ define(["require", "exports"], function (require, exports) {
             };
         };
         return EditorPosition;
-    })();
+    }());
     exports.EditorPosition = EditorPosition;
 });

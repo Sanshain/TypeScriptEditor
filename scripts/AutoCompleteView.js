@@ -1,4 +1,7 @@
 define(["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AutoCompleteView = void 0;
     var AutoCompleteView = (function () {
         function AutoCompleteView(editor, autoComplete) {
             this.editor = editor;
@@ -99,6 +102,6 @@ define(["require", "exports"], function (require, exports) {
         };
         ;
         return AutoCompleteView;
-    })();
+    }());
     exports.AutoCompleteView = AutoCompleteView;
 });

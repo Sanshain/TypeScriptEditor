@@ -1,4 +1,7 @@
 define(["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.readFile = exports.javascriptRun = void 0;
     function javascriptRun(js) {
         var external = window.open();
         var script = external.window.document.createElement("script");

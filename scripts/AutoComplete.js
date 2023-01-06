@@ -1,4 +1,7 @@
-define(["require", "exports", 'ace/keyboard/hash_handler', "ace/lib/event_emitter", 'AutoCompleteView', "ace/range"], function (require, exports, hash_handler_1, event_emitter_1, AutoCompleteView_1, range_1) {
+define(["require", "exports", "ace/keyboard/hash_handler", "ace/lib/event_emitter", "AutoCompleteView", "ace/range"], function (require, exports, hash_handler_1, event_emitter_1, AutoCompleteView_1, range_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AutoComplete = void 0;
     var oop = require("ace/lib/oop");
     var AutoComplete = (function () {
         function AutoComplete(editor, script, completionService) {
@@ -175,7 +178,7 @@ define(["require", "exports", 'ace/keyboard/hash_handler', "ace/lib/event_emitte
             });
         }
         return AutoComplete;
-    })();
+    }());
     exports.AutoComplete = AutoComplete;
     ;
 });
