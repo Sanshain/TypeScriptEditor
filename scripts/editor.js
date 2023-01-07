@@ -1,4 +1,4 @@
-define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete", "EditorPosition", "./CompletionService", "ace/lib/lang", "./lib/ace/mode/typescript/tsProject"], function (require, exports, utils_1, ace, range_1, AutoComplete_1, EditorPosition_1, CompletionService_1, lang_1, tsProject_1) {
+define(["require", "exports", "./utils", "./lib/ace/range", "./AutoComplete", "./EditorPosition", "./CompletionService", "./lib/ace/lib/lang", "./lib/ace/mode/typescript/tsProject"], function (require, exports, utils_1, range_1, AutoComplete_1, EditorPosition_1, CompletionService_1, lang_1, tsProject_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.defaultFormatCodeOptions = void 0;
@@ -19,9 +19,9 @@ define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete
         };
     }
     exports.defaultFormatCodeOptions = defaultFormatCodeOptions;
+    var ace = window.ace;
     var aceEditorPosition = null;
     var editor = null;
-    var outputEditor = null;
     var docUpdateCount = 0;
     var selectFileName = "";
     var syncStop = false;
@@ -217,9 +217,6 @@ define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete
         editor = ace.edit("editor");
         editor.setTheme("ace/theme/monokai");
         editor.getSession().setMode('ace/mode/typescript');
-        outputEditor = ace.edit("output");
-        outputEditor.setTheme("ace/theme/monokai");
-        outputEditor.getSession().setMode('ace/mode/javascript');
         document.getElementById('editor').style.fontSize = '14px';
         document.getElementById('output').style.fontSize = '14px';
         loadLibFiles();
@@ -246,7 +243,6 @@ define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete
                 exec: function (editor) {
                     languageServiceIndent();
                 },
-                multiSelectAction: "forEach"
             }]);
         aceEditorPosition = new EditorPosition_1.EditorPosition(editor);
         autoComplete = new AutoComplete_1.AutoComplete(editor, selectFileName, new CompletionService_1.CompletionService(editor));
@@ -270,9 +266,9 @@ define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete
             }
         });
         editor.getSession().on("compiled", function (e) {
-            outputEditor.getSession().doc.setValue(e.data);
         });
         editor.getSession().on("compileErrors", function (e) {
+            alert(99);
             var session = editor.getSession();
             errorMarkers.forEach(function (id) {
                 session.removeMarker(id);
@@ -284,13 +280,6 @@ define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete
                 var range = new range_1.Range(start.row, start.column, end.row, end.column);
                 errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
             });
-        });
-        $("#javascript-run").click(function (e) {
-            (0, utils_1.javascriptRun)(outputEditor.getSession().doc.getValue());
-        });
-        $("#select-sample").change(function (e) {
-            var path = "samples/" + $(this).val();
-            loadFile(path);
         });
     });
 });

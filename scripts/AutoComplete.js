@@ -1,8 +1,7 @@
-define(["require", "exports", "ace/keyboard/hash_handler", "ace/lib/event_emitter", "AutoCompleteView", "ace/range"], function (require, exports, hash_handler_1, event_emitter_1, AutoCompleteView_1, range_1) {
+define(["require", "exports", "./lib/ace/keyboard/hash_handler.js", "./lib/ace/lib/event_emitter", "./AutoCompleteView", "./lib/ace/range.js", "./lib/ace/lib/oop"], function (require, exports, hash_handler_js_1, event_emitter_1, AutoCompleteView_1, range_js_1, oop_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AutoComplete = void 0;
-    var oop = require("ace/lib/oop");
     var AutoComplete = (function () {
         function AutoComplete(editor, script, completionService) {
             var _this = this;
@@ -60,7 +59,7 @@ define(["require", "exports", "ace/keyboard/hash_handler", "ace/lib/event_emitte
             this.refreshCompletions = function (e) {
                 var cursor = _this.editor.getCursorPosition();
                 var data = e;
-                var newText = _this.editor.getSession().getTextRange(new range_1.Range(data.start.row, data.start.column, data.end.row, data.end.column));
+                var newText = _this.editor.getSession().getTextRange(new range_js_1.Range(data.start.row, data.start.column, data.end.row, data.end.column));
                 if (e.action == "insert") {
                     cursor.column += 1;
                 }
@@ -102,8 +101,8 @@ define(["require", "exports", "ace/keyboard/hash_handler", "ace/lib/event_emitte
             this.deactivate = function () {
                 _this.editor.keyBinding.removeKeyboardHandler(_this.handler);
             };
-            oop.implement(this, event_emitter_1.EventEmitter);
-            this.handler = new hash_handler_1.HashHandler();
+            (0, oop_1.implement)(this, event_emitter_1.EventEmitter);
+            this.handler = new hash_handler_js_1.HashHandler();
             this.view = new AutoCompleteView_1.AutoCompleteView(editor, this);
             this.scriptName = script;
             this._active = false;

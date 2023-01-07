@@ -246,7 +246,6 @@ define(["require", "exports", "./utils", "ace/ace", "ace/range", "./AutoComplete
                 exec: function (editor) {
                     languageServiceIndent();
                 },
-                multiSelectAction: "forEach"
             }]);
         aceEditorPosition = new EditorPosition_1.EditorPosition(editor);
         autoComplete = new AutoComplete_1.AutoComplete(editor, selectFileName, new CompletionService_1.CompletionService(editor));

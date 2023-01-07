@@ -1,14 +1,13 @@
-ts-check
-
 import { javascriptRun, readFile } from "./utils";
 
-import ace = require('ace/ace');
-import {Range as AceRange} from 'ace/range';
+// import ace = require('ace/ace');
+import {Range as AceRange} from './lib/ace/range';
 import {AutoComplete} from './AutoComplete';
-import lang = require("ace/lib/lang");
-import {EditorPosition} from 'EditorPosition';
+// import lang = require("./lib/ace/lib/lang");
+import {EditorPosition} from './EditorPosition';
 import {CompletionService} from './CompletionService';
-import {deferredCall} from "ace/lib/lang";
+import { deferredCall } from "./lib/ace/lib/lang";
+
 
 export function defaultFormatCodeOptions(): ts.FormatCodeOptions {
     return {
@@ -27,9 +26,12 @@ export function defaultFormatCodeOptions(): ts.FormatCodeOptions {
     };
 }
 
+const ace = window.ace;
+
 var aceEditorPosition = null;
 var editor:AceAjax.Editor = null;
 var docUpdateCount = 0;
+
 
 var selectFileName = "";
 
@@ -102,7 +104,7 @@ function updateMarker(data:AceAjax.EditorChangeEvent){
     var action = data.action;
     var action = data.action;
     var start = aceEditorPosition.getPositionChars(data.start);
-    var end = aceEditorPosition.getPositionChars(data.end);
+    var end = aceEditorPosition.getPositionChars(data.end);    
     var newText = editor.getSession().getTextRange(new AceRange(data.start.row, data.start.column, data.end.row, data.end.column));
     
     var markers = editor.getSession().getMarkers(true);
@@ -334,7 +336,8 @@ $(function(){
         // outputEditor.getSession().doc.setValue(e.data);
     });
 
-    editor.getSession().on("compileErrors", function(e){
+    editor.getSession().on("compileErrors", function (e) {
+        alert(99)
         var session = editor.getSession();
         errorMarkers.forEach(function (id){
             session.removeMarker(id);

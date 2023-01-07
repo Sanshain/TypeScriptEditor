@@ -1,0 +1,25 @@
+{
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    
+    "compilerOptions": {
+        "sourceMap": true,
+        "removeComments": true,
+        "target": "es6",
+        //"module": "commonjs"                    // dont work if disabled inside rollup.config
+        // "module": "ES2015",
+        // "module":"AMD",
+        "allowJs": true,
+        // "preserveSymlinks": true
+    },
+    "include": [
+        "./scripts/*.ts*"
+    ],
+    "exclude": [
+        "./scripts/lib/**/*.js"
+    ],
+    // "buildOptions": {
+    //     "preserveSymlinks": false
+    // }
+}

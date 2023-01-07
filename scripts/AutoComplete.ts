@@ -1,9 +1,14 @@
-import {HashHandler} from 'ace/keyboard/hash_handler';
-import {EventEmitter}  from "ace/lib/event_emitter";
-import {AutoCompleteView} from 'AutoCompleteView';
-import {Range as AceRange} from "ace/range";
+// import {HashHandler} from 'ace/keyboard/hash_handler';
+import {HashHandler} from './lib/ace/keyboard/hash_handler.js';
 
-var oop = require("ace/lib/oop");
+import {EventEmitter}  from "./lib/ace/lib/event_emitter";
+import {AutoCompleteView} from './AutoCompleteView';
+import {Range as AceRange} from "./lib/ace/range.js"; 
+
+// var oop = require(ace/lib/oop"); => see below:
+// var oop = require("./lib/ace/lib/oop"); // => see below:
+import { implement } from './lib/ace/lib/oop';
+
 import {CompletionService} from "./CompletionService";
 
 export class AutoComplete {
@@ -19,8 +24,8 @@ export class AutoComplete {
     _emit: any;
 
     constructor(public editor, public script,  public completionService: CompletionService){
-        oop.implement(this, EventEmitter);
-        
+        implement(this, EventEmitter);        
+
         this.handler = new HashHandler();
         this.view = new AutoCompleteView(editor, this);
         this.scriptName = script;

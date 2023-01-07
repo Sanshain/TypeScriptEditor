@@ -300,7 +300,7 @@ $(function(){
         exec: function(editor) {
             languageServiceIndent();
         },
-        multiSelectAction: "forEach"
+        // multiSelectAction: "forEach"
     }]);
 
     aceEditorPosition = new EditorPosition(editor);
