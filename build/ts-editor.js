@@ -6,7 +6,7 @@
             type: "GET",
             url: path,
             success: cb,
-            error: ((jqXHR, textStatus) => console.log(textStatus))
+            error: (function (jqXHR, textStatus) { return console.log(textStatus); })
         });
     }
 
@@ -706,8 +706,8 @@
 
     var EventEmitter_1 = EventEmitter;
 
-    class AutoCompleteView {
-        constructor(editor, autoComplete) {
+    var AutoCompleteView = (function () {
+        function AutoCompleteView(editor, autoComplete) {
             this.editor = editor;
             this.autoComplete = autoComplete;
             this.selectedClassName = 'ace_autocomplete_selected';
@@ -720,15 +720,13 @@
             this.wrap.style.zIndex = '1000';
             this.wrap.appendChild(this.listElement);
         }
-        show() {
+        AutoCompleteView.prototype.show = function () {
             return this.wrap.style.display = 'block';
-        }
-        ;
-        hide() {
+        };
+        AutoCompleteView.prototype.hide = function () {
             return this.wrap.style.display = 'none';
-        }
-        ;
-        setPosition(coords) {
+        };
+        AutoCompleteView.prototype.setPosition = function (coords) {
             var bottom, editorBottom, top;
             top = coords.pageY + 20;
             editorBottom = $(this.editor.container).offset().top + $(this.editor.container).height();
@@ -741,9 +739,8 @@
                 this.wrap.style.top = (top - $(this.wrap).height() - 20) + 'px';
                 return this.wrap.style.left = coords.pageX + 'px';
             }
-        }
-        ;
-        current() {
+        };
+        AutoCompleteView.prototype.current = function () {
             var child, children, i;
             children = this.listElement.childNodes;
             for (i in children) {
@@ -752,9 +749,8 @@
                     return child;
             }
             return null;
-        }
-        ;
-        focusNext() {
+        };
+        AutoCompleteView.prototype.focusNext = function () {
             var curr, focus;
             curr = this.current();
             focus = curr.nextSibling;
@@ -763,9 +759,8 @@
                 focus.className = this.selectedClassName;
                 return this.adjustPosition();
             }
-        }
-        ;
-        focusPrev() {
+        };
+        AutoCompleteView.prototype.focusPrev = function () {
             var curr, focus;
             curr = this.current();
             focus = curr.previousSibling;
@@ -774,18 +769,16 @@
                 focus.className = this.selectedClassName;
                 return this.adjustPosition();
             }
-        }
-        ;
-        ensureFocus() {
+        };
+        AutoCompleteView.prototype.ensureFocus = function () {
             if (!this.current()) {
                 if (this.listElement.firstChild) {
                     this.listElement.firstChild.className = this.selectedClassName;
                     return this.adjustPosition();
                 }
             }
-        }
-        ;
-        adjustPosition() {
+        };
+        AutoCompleteView.prototype.adjustPosition = function () {
             var elm, elmOuterHeight, newMargin, pos, preMargin, wrapHeight;
             elm = this.current();
             if (elm) {
@@ -803,9 +796,9 @@
                     return $(this.listElement).css("margin-top", newMargin);
                 }
             }
-        }
-        ;
-    }
+        };
+        return AutoCompleteView;
+    }());
 
     var keys = {};
 
@@ -2527,44 +2520,45 @@
 
     var HashHandler_1 = HashHandler;
 
-    class AutoComplete {
-        constructor(editor, script, completionService) {
+    var AutoComplete = (function () {
+        function AutoComplete(editor, script, completionService) {
+            var _this = this;
             this.editor = editor;
             this.script = script;
             this.completionService = completionService;
-            this.isActive = () => {
-                return this._active;
+            this.isActive = function () {
+                return _this._active;
             };
-            this.setScriptName = (name) => {
-                this.scriptName = name;
+            this.setScriptName = function (name) {
+                _this.scriptName = name;
             };
-            this.show = () => {
-                this.listElement = this.view.listElement;
-                this.editor.container.appendChild(this.view.wrap);
-                this.listElement.innerHTML = '';
+            this.show = function () {
+                _this.listElement = _this.view.listElement;
+                _this.editor.container.appendChild(_this.view.wrap);
+                _this.listElement.innerHTML = '';
             };
-            this.hide = () => {
-                this.view.hide();
+            this.hide = function () {
+                _this.view.hide();
             };
-            this.compilation = (cursor) => {
-                var compilationInfo = this.completionService.getCursorCompilation(this.scriptName, cursor);
-                var text = this.completionService.matchText;
-                var coords = this.editor.renderer.textToScreenCoordinates(cursor.row, cursor.column - text.length);
-                this.view.setPosition(coords);
-                this.inputText = text;
+            this.compilation = function (cursor) {
+                var compilationInfo = _this.completionService.getCursorCompilation(_this.scriptName, cursor);
+                var text = _this.completionService.matchText;
+                var coords = _this.editor.renderer.textToScreenCoordinates(cursor.row, cursor.column - text.length);
+                _this.view.setPosition(coords);
+                _this.inputText = text;
                 var compilations = compilationInfo.entries;
-                if (this.inputText.length > 0) {
-                    compilations = compilationInfo.entries.filter((elm) => {
-                        return elm.name.toLowerCase().indexOf(this.inputText.toLowerCase()) == 0;
+                if (_this.inputText.length > 0) {
+                    compilations = compilationInfo.entries.filter(function (elm) {
+                        return elm.name.toLowerCase().indexOf(_this.inputText.toLowerCase()) == 0;
                     });
                 }
-                var matchFunc = (elm) => {
-                    return elm.name.indexOf(this.inputText) == 0 ? 1 : 0;
+                var matchFunc = function (elm) {
+                    return elm.name.indexOf(_this.inputText) == 0 ? 1 : 0;
                 };
-                var matchCompare = (a, b) => {
+                var matchCompare = function (a, b) {
                     return matchFunc(b) - matchFunc(a);
                 };
-                var textCompare = (a, b) => {
+                var textCompare = function (a, b) {
                     if (a.name == b.name) {
                         return 0;
                     }
@@ -2572,32 +2566,32 @@
                         return (a.name > b.name) ? 1 : -1;
                     }
                 };
-                var compare = (a, b) => {
+                var compare = function (a, b) {
                     var ret = matchCompare(a, b);
                     return (ret != 0) ? ret : textCompare(a, b);
                 };
                 compilations = compilations.sort(compare);
-                this.showCompilation(compilations);
+                _this.showCompilation(compilations);
                 return compilations.length;
             };
-            this.refreshCompletions = (e) => {
-                var cursor = this.editor.getCursorPosition();
+            this.refreshCompletions = function (e) {
+                var cursor = _this.editor.getCursorPosition();
                 var data = e;
-                var newText = this.editor.getSession().getTextRange(new Range_1(data.start.row, data.start.column, data.end.row, data.end.column));
+                var newText = _this.editor.getSession().getTextRange(new Range_1(data.start.row, data.start.column, data.end.row, data.end.column));
                 if (e.action == "insert") {
                     cursor.column += 1;
                 }
                 else if (e.action == "remove") {
                     if (newText == '\n') {
-                        this.deactivate();
+                        _this.deactivate();
                         return;
                     }
                 }
-                this.compilation(cursor);
+                _this.compilation(cursor);
             };
-            this.showCompilation = (infos) => {
+            this.showCompilation = function (infos) {
                 if (infos.length > 0) {
-                    this.view.show();
+                    _this.view.show();
                     var html = '';
                     for (var n in infos) {
                         var info = infos[n];
@@ -2606,24 +2600,24 @@
                         var kind = '<span class="label-kind label-kind-' + info.kind + '">' + info.kind.charAt(0) + '</span>';
                         html += '<li data-name="' + info.name + '">' + kind + name + type + '</li>';
                     }
-                    this.listElement.innerHTML = html;
-                    this.view.ensureFocus();
+                    _this.listElement.innerHTML = html;
+                    _this.view.ensureFocus();
                 }
                 else {
-                    this.view.hide();
+                    _this.view.hide();
                 }
             };
-            this.active = () => {
-                this.show();
-                var count = this.compilation(this.editor.getCursorPosition());
+            this.active = function () {
+                _this.show();
+                var count = _this.compilation(_this.editor.getCursorPosition());
                 if (!(count > 0)) {
-                    this.hide();
+                    _this.hide();
                     return;
                 }
-                this.editor.keyBinding.addKeyboardHandler(this.handler);
+                _this.editor.keyBinding.addKeyboardHandler(_this.handler);
             };
-            this.deactivate = () => {
-                this.editor.keyBinding.removeKeyboardHandler(this.handler);
+            this.deactivate = function () {
+                _this.editor.keyBinding.removeKeyboardHandler(_this.handler);
             };
             oop.implement(this, EventEmitter_1);
             this.handler = new HashHandler_1();
@@ -2631,16 +2625,16 @@
             this.scriptName = script;
             this._active = false;
             this.inputText = '';
-            this.handler.attach = () => {
-                editor.addEventListener("change", this.refreshCompletions);
-                this._emit("attach", { sender: this });
-                this._active = true;
+            this.handler.attach = function () {
+                editor.addEventListener("change", _this.refreshCompletions);
+                _this._emit("attach", { sender: _this });
+                _this._active = true;
             };
-            this.handler.detach = () => {
-                editor.removeEventListener("change", this.refreshCompletions);
-                this.view.hide();
-                this._emit("detach", { sender: this });
-                this._active = false;
+            this.handler.detach = function () {
+                editor.removeEventListener("change", _this.refreshCompletions);
+                _this.view.hide();
+                _this._emit("detach", { sender: _this });
+                _this._active = false;
             };
             var self = this;
             this.handler.handleKeyboard = function (data, hashId, key, keyCode) {
@@ -2678,16 +2672,16 @@
             };
             this.handler.bindKeys(Keybinding);
             this.handler.addCommands({
-                focusnext: (editor) => {
+                focusnext: function (editor) {
                     self.view.focusNext();
                 },
-                focusprev: (editor) => {
+                focusprev: function (editor) {
                     self.view.focusPrev();
                 },
-                cancel: (editor) => {
+                cancel: function (editor) {
                     self.deactivate();
                 },
-                insertComplete: (editor) => {
+                insertComplete: function (editor) {
                     editor.removeEventListener("change", self.refreshCompletions);
                     var curr = self.view.current();
                     for (var i = 0; i < self.inputText.length; i++) {
@@ -2700,28 +2694,30 @@
                 }
             });
         }
-    }
+        return AutoComplete;
+    }());
 
-    class EditorPosition {
-        constructor(editor) {
+    var EditorPosition = (function () {
+        function EditorPosition(editor) {
+            var _this = this;
             this.editor = editor;
-            this.getPositionChars = (pos) => {
+            this.getPositionChars = function (pos) {
                 var doc;
                 doc = editor.getSession().getDocument();
-                return this.getChars(doc, pos);
+                return _this.getChars(doc, pos);
             };
-            this.getAcePositionFromChars = (chars) => {
+            this.getAcePositionFromChars = function (chars) {
                 var doc;
                 doc = editor.getSession().getDocument();
-                return this.getPosition(doc, chars);
+                return _this.getPosition(doc, chars);
             };
-            this.getCurrentCharPosition = () => {
-                return this.getPositionChars(editor.getCursorPosition());
+            this.getCurrentCharPosition = function () {
+                return _this.getPositionChars(editor.getCursorPosition());
             };
-            this.getCurrentLeftChar = () => {
-                return this.getPositionLeftChar(editor.getCursorPosition());
+            this.getCurrentLeftChar = function () {
+                return _this.getPositionLeftChar(editor.getCursorPosition());
             };
-            this.getPositionChar = (cursor) => {
+            this.getPositionChar = function (cursor) {
                 var range;
                 range = {
                     start: {
@@ -2735,7 +2731,7 @@
                 };
                 return editor.getSession().getDocument().getTextRange(range);
             };
-            this.getPositionLeftChar = (cursor) => {
+            this.getPositionLeftChar = function (cursor) {
                 var range;
                 range = {
                     start: {
@@ -2750,18 +2746,18 @@
                 return editor.getSession().getDocument().getTextRange(range);
             };
         }
-        getLinesChars(lines) {
+        EditorPosition.prototype.getLinesChars = function (lines) {
             var count;
             count = 0;
-            lines.forEach((line) => {
+            lines.forEach(function (line) {
                 return count += line.length + 1;
             });
             return count;
-        }
-        getChars(doc, pos) {
+        };
+        EditorPosition.prototype.getChars = function (doc, pos) {
             return this.getLinesChars(doc.getLines(0, pos.row - 1)) + pos.column;
-        }
-        getPosition(doc, chars) {
+        };
+        EditorPosition.prototype.getPosition = function (doc, chars) {
             var count, i, line, lines, row;
             lines = doc.getAllLines();
             count = 0;
@@ -2781,15 +2777,20 @@
                 row: row,
                 column: chars - count
             };
-        }
-    }
+        };
+        return EditorPosition;
+    }());
 
     function clone(target) {
         return assign(Array.isArray(target) ? [] : {}, target);
     }
-    function assign(target, ...items) {
+    function assign(target) {
+        var items = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            items[_i - 1] = arguments[_i];
+        }
         return items.reduce(function (target, source) {
-            return Object.keys(source).reduce((target, key) => {
+            return Object.keys(source).reduce(function (target, key) {
                 target[key] = source[key];
                 return target;
             }, target);
@@ -2870,25 +2871,25 @@
             return null;
         }
         return {
-            log: () => null,
-            error: () => null,
-            trace: () => null,
-            addScript,
-            removeScript,
-            removeAll,
-            updateScript,
-            hasScript,
-            editScript,
-            getScriptContent,
-            setCompilationSettings,
-            setScriptIsOpen,
-            getCompilationSettings: () => compilationSettings,
-            getScriptFileNames: () => Object.keys(fileNameToScript),
-            getCurrentDirectory: () => currentDir,
-            getDefaultLibFileName: () => defaultLibFileName,
-            getScriptVersion,
-            getScriptIsOpen,
-            getScriptSnapshot,
+            log: function () { return null; },
+            error: function () { return null; },
+            trace: function () { return null; },
+            addScript: addScript,
+            removeScript: removeScript,
+            removeAll: removeAll,
+            updateScript: updateScript,
+            hasScript: hasScript,
+            editScript: editScript,
+            getScriptContent: getScriptContent,
+            setCompilationSettings: setCompilationSettings,
+            setScriptIsOpen: setScriptIsOpen,
+            getCompilationSettings: function () { return compilationSettings; },
+            getScriptFileNames: function () { return Object.keys(fileNameToScript); },
+            getCurrentDirectory: function () { return currentDir; },
+            getDefaultLibFileName: function () { return defaultLibFileName; },
+            getScriptVersion: getScriptVersion,
+            getScriptIsOpen: getScriptIsOpen,
+            getScriptSnapshot: getScriptSnapshot,
         };
     }
     function createScriptInfo(content) {
@@ -2968,52 +2969,52 @@
                 return collapseChangesAcrossMultipleVersions(entries);
             }
             return {
-                getText: (start, end) => textSnapshot.substring(start, end),
-                getLength: () => textSnapshot.length,
-                getChangeRange,
-                getLineStartPositions: () => lineStarts,
+                getText: function (start, end) { return textSnapshot.substring(start, end); },
+                getLength: function () { return textSnapshot.length; },
+                getChangeRange: getChangeRange,
+                getLineStartPositions: function () { return lineStarts; },
                 version: version
             };
         }
         return {
-            getContent: () => content,
-            getVersion: () => scriptVersion,
-            getIsOpen: () => isOpen,
-            setIsOpen: val => isOpen = val,
-            getEditRanges: () => editRanges,
-            getLineStarts,
-            getScriptSnapshot,
-            updateContent,
-            editContent
+            getContent: function () { return content; },
+            getVersion: function () { return scriptVersion; },
+            getIsOpen: function () { return isOpen; },
+            setIsOpen: function (val) { return isOpen = val; },
+            getEditRanges: function () { return editRanges; },
+            getLineStarts: getLineStarts,
+            getScriptSnapshot: getScriptSnapshot,
+            updateContent: updateContent,
+            editContent: editContent
         };
     }
 
     if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
         importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js');
     }
-    class TsProject {
-        constructor() {
+    var TsProject = (function () {
+        function TsProject() {
             this.languageServiceHost = createLanguageServiceHost('', "typescripts/lib.d.ts");
             this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry());
         }
-    }
+        return TsProject;
+    }());
     var tsProject$2 = null;
     function getTSProject() {
         return tsProject$2 ? tsProject$2 : tsProject$2 = new TsProject();
     }
 
     var tsProject$1 = getTSProject();
-    class CompletionService {
-        constructor(editor) {
+    var CompletionService = (function () {
+        function CompletionService(editor) {
             this.editor = editor;
             this.editorPos = new EditorPosition(editor);
         }
-        getCompilation(script, charpos, isMemberCompletion) {
+        CompletionService.prototype.getCompilation = function (script, charpos, isMemberCompletion) {
             var compInfo = tsProject$1.languageService.getCompletionsAtPosition(script, charpos);
             return compInfo;
-        }
-        ;
-        getCursorCompilation(script, cursor) {
+        };
+        CompletionService.prototype.getCursorCompilation = function (script, cursor) {
             var isMemberCompletion, matches, pos, text;
             pos = this.editorPos.getPositionChars(cursor);
             text = this.editor.session.getLine(cursor.row).slice(0, cursor.column);
@@ -3029,13 +3030,12 @@
                 this.matchText = matches[0];
             }
             return this.getCompilation(script, pos, isMemberCompletion);
-        }
-        ;
-        getCurrentPositionCompilation(script) {
+        };
+        CompletionService.prototype.getCurrentPositionCompilation = function (script) {
             return this.getCursorCompilation(script, this.editor.getCursorPosition());
-        }
-        ;
-    }
+        };
+        return CompletionService;
+    }());
 
     /* ***** BEGIN LICENSE BLOCK *****
      * Distributed under the BSD license:
@@ -3118,7 +3118,7 @@
             PlaceOpenBraceOnNewLineForControlBlocks: false,
         };
     }
-    const ace = window.ace;
+    var ace = window.ace;
     var aceEditorPosition = null;
     var editor = null;
     var selectFileName = "";
@@ -3285,7 +3285,7 @@
         refMarkers.forEach(function (id) {
             session.removeMarker(id);
         });
-        let references = tsProject.languageService.getOccurrencesAtPosition(selectFileName, aceEditorPosition.getCurrentCharPosition());
+        var references = tsProject.languageService.getOccurrencesAtPosition(selectFileName, aceEditorPosition.getCurrentCharPosition());
         if (!references) {
             return;
         }

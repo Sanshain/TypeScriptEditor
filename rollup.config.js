@@ -143,7 +143,7 @@ export default [
                 // module: 'CommonJS',                 
                 // tsconfig: false, 
                 lib: ["es6", "dom"], //es5
-                target: "es6",
+                target: "es5",
                 sourceMap: true,
                 // compilerOptions: {
                 //     preserveSymlinks: false
@@ -202,7 +202,7 @@ export default [
                 // module: 'CommonJS', 
                 // tsconfig: false, 
                 lib: ["es6", "dom"], //es5
-                target: "es6",
+                target: "es5",
                 sourceMap: true,
                 // compilerOptions: {
                 //     preserveSymlinks: false

@@ -2070,9 +2070,13 @@
     function clone(target) {
         return assign(Array.isArray(target) ? [] : {}, target);
     }
-    function assign(target, ...items) {
+    function assign(target) {
+        var items = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            items[_i - 1] = arguments[_i];
+        }
         return items.reduce(function (target, source) {
-            return Object.keys(source).reduce((target, key) => {
+            return Object.keys(source).reduce(function (target, key) {
                 target[key] = source[key];
                 return target;
             }, target);
@@ -2153,25 +2157,25 @@
             return null;
         }
         return {
-            log: () => null,
-            error: () => null,
-            trace: () => null,
-            addScript,
-            removeScript,
-            removeAll,
-            updateScript,
-            hasScript,
-            editScript,
-            getScriptContent,
-            setCompilationSettings,
-            setScriptIsOpen,
-            getCompilationSettings: () => compilationSettings,
-            getScriptFileNames: () => Object.keys(fileNameToScript),
-            getCurrentDirectory: () => currentDir,
-            getDefaultLibFileName: () => defaultLibFileName,
-            getScriptVersion,
-            getScriptIsOpen,
-            getScriptSnapshot,
+            log: function () { return null; },
+            error: function () { return null; },
+            trace: function () { return null; },
+            addScript: addScript,
+            removeScript: removeScript,
+            removeAll: removeAll,
+            updateScript: updateScript,
+            hasScript: hasScript,
+            editScript: editScript,
+            getScriptContent: getScriptContent,
+            setCompilationSettings: setCompilationSettings,
+            setScriptIsOpen: setScriptIsOpen,
+            getCompilationSettings: function () { return compilationSettings; },
+            getScriptFileNames: function () { return Object.keys(fileNameToScript); },
+            getCurrentDirectory: function () { return currentDir; },
+            getDefaultLibFileName: function () { return defaultLibFileName; },
+            getScriptVersion: getScriptVersion,
+            getScriptIsOpen: getScriptIsOpen,
+            getScriptSnapshot: getScriptSnapshot,
         };
     }
     function createScriptInfo(content) {
@@ -2251,35 +2255,36 @@
                 return collapseChangesAcrossMultipleVersions(entries);
             }
             return {
-                getText: (start, end) => textSnapshot.substring(start, end),
-                getLength: () => textSnapshot.length,
-                getChangeRange,
-                getLineStartPositions: () => lineStarts,
+                getText: function (start, end) { return textSnapshot.substring(start, end); },
+                getLength: function () { return textSnapshot.length; },
+                getChangeRange: getChangeRange,
+                getLineStartPositions: function () { return lineStarts; },
                 version: version
             };
         }
         return {
-            getContent: () => content,
-            getVersion: () => scriptVersion,
-            getIsOpen: () => isOpen,
-            setIsOpen: val => isOpen = val,
-            getEditRanges: () => editRanges,
-            getLineStarts,
-            getScriptSnapshot,
-            updateContent,
-            editContent
+            getContent: function () { return content; },
+            getVersion: function () { return scriptVersion; },
+            getIsOpen: function () { return isOpen; },
+            setIsOpen: function (val) { return isOpen = val; },
+            getEditRanges: function () { return editRanges; },
+            getLineStarts: getLineStarts,
+            getScriptSnapshot: getScriptSnapshot,
+            updateContent: updateContent,
+            editContent: editContent
         };
     }
 
     if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
         importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js');
     }
-    class TsProject {
-        constructor() {
+    var TsProject = (function () {
+        function TsProject() {
             this.languageServiceHost = createLanguageServiceHost('', "typescripts/lib.d.ts");
             this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry());
         }
-    }
+        return TsProject;
+    }());
     var tsProject$1 = null;
     function getTSProject() {
         return tsProject$1 ? tsProject$1 : tsProject$1 = new TsProject();
@@ -2318,41 +2323,42 @@
         this.setOptions();
         sender.emit("initAfter");
     }
-    class TypeScriptWorker {
-        constructor(sender) {
+    var TypeScriptWorker = (function () {
+        function TypeScriptWorker(sender) {
+            var _this = this;
             this.sender = sender;
-            this.setOptions = (options) => {
-                this.options = options || {};
+            this.setOptions = function (options) {
+                _this.options = options || {};
             };
-            this.changeOptions = (newOptions) => {
-                oop$2.mixin(this.options, newOptions);
-                this.deferredUpdate.schedule(100);
+            this.changeOptions = function (newOptions) {
+                oop$2.mixin(_this.options, newOptions);
+                _this.deferredUpdate.schedule(100);
             };
-            this.addlibrary = (name, content) => {
+            this.addlibrary = function (name, content) {
                 tsProject.languageServiceHost.addScript(name, content);
             };
-            this.getCompletionsAtPosition = (fileName, pos, isMemberCompletion, id) => {
+            this.getCompletionsAtPosition = function (fileName, pos, isMemberCompletion, id) {
                 var ret = tsProject.languageService.getCompletionsAtPosition(fileName, pos);
-                this.sender.callback(ret, id);
+                _this.sender.callback(ret, id);
             };
-            this.onUpdate = () => {
+            this.onUpdate = function () {
                 var fileName = "temp.ts";
                 if (tsProject.languageServiceHost.hasScript(fileName)) {
-                    tsProject.languageServiceHost.updateScript(fileName, this.doc.getValue());
+                    tsProject.languageServiceHost.updateScript(fileName, _this.doc.getValue());
                 }
                 else {
-                    tsProject.languageServiceHost.addScript(fileName, this.doc.getValue());
+                    tsProject.languageServiceHost.addScript(fileName, _this.doc.getValue());
                 }
                 var services = tsProject.languageService;
                 var output = services.getEmitOutput(fileName);
-                var jsOutput = output.outputFiles.map(o => o.text).join('\n');
+                var jsOutput = output.outputFiles.map(function (o) { return o.text; }).join('\n');
                 var allDiagnostics = services.getCompilerOptionsDiagnostics()
                     .concat(services.getSyntacticDiagnostics(fileName))
                     .concat(services.getSemanticDiagnostics(fileName));
-                this.sender.emit("compiled", jsOutput);
+                _this.sender.emit("compiled", jsOutput);
                 var annotations = [];
-                allDiagnostics.forEach((error) => {
-                    var pos = DocumentPositionUtil.getPosition(this.doc, error.start);
+                allDiagnostics.forEach(function (error) {
+                    var pos = DocumentPositionUtil.getPosition(_this.doc, error.start);
                     annotations.push({
                         row: pos.row,
                         column: pos.column,
@@ -2363,11 +2369,12 @@
                         raw: error.messageText
                     });
                 });
-                this.sender.emit("compileErrors", annotations);
+                _this.sender.emit("compileErrors", annotations);
             };
             setupInheritanceCall.call(this, sender);
         }
-    }
+        return TypeScriptWorker;
+    }());
     oop$2.inherits(TypeScriptWorker, Mirror_1);
     (function () {
         var proto = this;

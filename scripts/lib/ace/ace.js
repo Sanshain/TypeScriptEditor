@@ -9192,7 +9192,6 @@ EditSession.$uid = 0;
     };
     this.$startWorker = function () {
         try {
-            console.log(999)
             this.$worker = this.$mode.createWorker(this);
         }
         catch (e) {
@@ -17677,10 +17676,11 @@ function createWorker(workerUrl) {
         var blob = $workerBlob(workerUrl);
         var URL = window.URL || window.webkitURL;
         var blobURL = URL.createObjectURL(blob);        
-        alert(90900)
+        
+        console.log('loadWorkerFromBlob')
+
         return new Worker(blobURL);
-    }
-    debugger
+    }    
     return new Worker(workerUrl);
 }
 
