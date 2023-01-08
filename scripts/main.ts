@@ -6,7 +6,8 @@ import {AutoComplete} from './AutoComplete';
 import lang = require("ace/lib/lang");
 import {EditorPosition} from 'EditorPosition';
 import {CompletionService} from './CompletionService';
-import {deferredCall} from "ace/lib/lang";
+import { deferredCall } from "ace/lib/lang";
+
 
 export function defaultFormatCodeOptions(): ts.FormatCodeOptions {
     return {
@@ -97,7 +98,8 @@ function onUpdateDocument(e: AceAjax.EditorChangeEvent) {
 }
 
 // TODO check column
-function updateMarker(data:AceAjax.EditorChangeEvent){    
+function updateMarker(data: AceAjax.EditorChangeEvent) {
+    
     var action = data.action;
     var action = data.action;
     var start = aceEditorPosition.getPositionChars(data.start);
@@ -264,7 +266,8 @@ function workerOnCreate(func, timeout){
 $(function(){
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode('ace/mode/typescript');
+    editor.getSession().setMode('ace/mode/typescript');    
+    
 
     outputEditor = ace.edit("output");
     outputEditor.setTheme("ace/theme/monokai");
@@ -337,12 +340,12 @@ $(function(){
         errorMarkers.forEach(function (id){
             session.removeMarker(id);
         });
-        e.data.forEach(function(error){
+        e.data.forEach(function (error) {
             var getpos = aceEditorPosition.getAcePositionFromChars;
             var start = getpos(error.minChar);
             var end = getpos(error.limChar);
             var range = new AceRange(start.row, start.column, end.row, end.column);
-            errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
+            errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));                        
         });
     });    
     

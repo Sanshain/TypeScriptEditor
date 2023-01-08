@@ -279,6 +279,7 @@ define(["require", "exports", "./utils", "./lib/ace/range", "./AutoComplete", ".
                 var end = getpos(error.limChar);
                 var range = new range_1.Range(start.row, start.column, end.row, end.column);
                 errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
+                console.log(error);
             });
         });
     });

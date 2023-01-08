@@ -1,5 +1,5 @@
 define(function(require, exports, module) {
-"use strict";
+"use strict"; 
 
 var WorkerClient = require("ace/worker/worker_client").WorkerClient;
 

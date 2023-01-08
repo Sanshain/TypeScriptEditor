@@ -1,8 +1,11 @@
 // import {HashHandler} from 'ace/keyboard/hash_handler';
-import {HashHandler} from './lib/ace/keyboard/hash_handler.js';
+// import { Range as AceRange } from "ace/range";
+
 
 import {EventEmitter}  from "./lib/ace/lib/event_emitter";
-import {AutoCompleteView} from './AutoCompleteView';
+import { AutoCompleteView } from './AutoCompleteView';
+
+import { HashHandler } from './lib/ace/keyboard/hash_handler.js'
 import {Range as AceRange} from "./lib/ace/range.js"; 
 
 // var oop = require(ace/lib/oop"); => see below:
@@ -10,6 +13,7 @@ import {Range as AceRange} from "./lib/ace/range.js";
 import { implement } from './lib/ace/lib/oop';
 
 import {CompletionService} from "./CompletionService";
+
 
 export class AutoComplete {
     listElement: any;

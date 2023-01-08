@@ -868,7 +868,8 @@ var EditSession = function(text, mode) {
     **/
     this.$mode = null;
     this.$modeId = null;
-    this.setMode = function(mode, cb) {
+    this.setMode = function (mode, cb) {
+        console.log('mode...');
         if (mode && typeof mode === "object") {
             if (mode.getTokenizer)
                 return this.$onChangeMode(mode);

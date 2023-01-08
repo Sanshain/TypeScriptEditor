@@ -1,6 +1,6 @@
 import { javascriptRun, readFile } from "./utils";
 
-// import ace = require('ace/ace');
+// import ace = require('./lib/ace/ace');
 import {Range as AceRange} from './lib/ace/range';
 import {AutoComplete} from './AutoComplete';
 // import lang = require("./lib/ace/lib/lang");
@@ -100,7 +100,8 @@ function onUpdateDocument(e: AceAjax.EditorChangeEvent) {
 }
 
 // TODO check column
-function updateMarker(data:AceAjax.EditorChangeEvent){    
+function updateMarker(data: AceAjax.EditorChangeEvent) {    
+
     var action = data.action;
     var action = data.action;
     var start = aceEditorPosition.getPositionChars(data.start);
@@ -121,7 +122,8 @@ function updateMarker(data:AceAjax.EditorChangeEvent){
         }
     }
     
-    if(line_count != 0){
+    if (line_count != 0) {
+        
 
         var markerUpdate = function(id){
             var marker = markers[id];
@@ -137,7 +139,7 @@ function updateMarker(data:AceAjax.EditorChangeEvent){
             }
         };
 
-        errorMarkers.forEach(markerUpdate);
+        errorMarkers.forEach(markerUpdate);                
         refMarkers.forEach(markerUpdate);
         (<any>editor).onChangeFrontMarker();
     }
@@ -266,8 +268,10 @@ function workerOnCreate(func, timeout){
 
 $(function(){
     editor = ace.edit("editor");
-    editor.setTheme("ace/theme/monokai");
+    editor.setTheme("ace/theme/monokai");    
     editor.getSession().setMode('ace/mode/typescript');
+    // editor.getSession().setMode('ace/mode/javascript');    
+    
         
     // var outputEditor: AceAjax.Editor = ace.edit("output");
     // outputEditor.setTheme("ace/theme/monokai");
@@ -348,6 +352,7 @@ $(function(){
             var end = getpos(error.limChar);
             var range = new AceRange(start.row, start.column, end.row, end.column);
             errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
+            console.log(error);            
         });
     });    
     

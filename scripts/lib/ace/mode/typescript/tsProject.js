@@ -2,8 +2,8 @@ define(["require", "exports", "./languageServiceHost"], function (require, expor
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getTSProject = void 0;
-    if (typeof importScripts !== 'undefined') {
-        importScripts('../mode/typescript/typescriptServices.js');
+    if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
+        importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js');
     }
     var TsProject = (function () {
         function TsProject() {

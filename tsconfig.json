@@ -7,14 +7,16 @@
         "sourceMap": true,
         "removeComments": true,
         "target": "es6",
-        //"module": "commonjs"                    // dont work if disabled inside rollup.config
+        //"module": "commonjs",                    // dont work if disabled inside rollup.config
         // "module": "ES2015",
         // "module":"AMD",
         "allowJs": true,
         // "preserveSymlinks": true
     },
     "include": [
-        "./scripts/*.ts*"
+        "./scripts/*.ts*",
+        "./scripts/lib/ace/mode/typescript/typescript_worker.ts"
+        // "./scripts/lib/ace/mode/typescript/*.ts"
     ],
     "exclude": [
         "./scripts/lib/**/*.js"

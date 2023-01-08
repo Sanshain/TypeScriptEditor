@@ -1,12 +1,13 @@
-define(["require", "exports", "./DocumentPositionUtil", "../../lib/oop.js", "../../lib/lang.js", "../../worker/mirror.js", "../../document.js", "./tsProject"], function (require, exports, DocumentPositionUtil_1, oop_js_1, lang_js_1, mirror_js_1, document_js_1, tsProject_1) {
-    "use strict";
+// define(["require", "exports", "./mode/typescript/DocumentPositionUtil.ts", "./lib/oop", "./worker/mirror", "./lib/lang", "./document", "./mode/typescript/tsProject.ts"], function (require, exports, DocumentPositionUtil_1, oop, mirror_1, lang, document_1, tsProject_1) {
+
+    "use strict";    
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TypeScriptWorker = void 0;
     var tsProject = (0, tsProject_1.getTSProject)();
     function setupInheritanceCall(sender) {
         this.sender = sender;
-        var doc = this.doc = new document_js_1.Document("");
-        var deferredUpdate = this.deferredUpdate = lang_js_1.default.deferredCall(this.onUpdate.bind(this));
+        var doc = this.doc = new document_1.Document("");
+        var deferredUpdate = this.deferredUpdate = lang.deferredCall(this.onUpdate.bind(this));
         var _self = this;
         sender.on("change", function (e) {
             var data = e.data;
@@ -44,7 +45,7 @@ define(["require", "exports", "./DocumentPositionUtil", "../../lib/oop.js", "../
                 _this.options = options || {};
             };
             this.changeOptions = function (newOptions) {
-                oop_js_1.default.mixin(_this.options, newOptions);
+                oop.mixin(_this.options, newOptions);
                 _this.deferredUpdate.schedule(100);
             };
             this.addlibrary = function (name, content) {
@@ -89,7 +90,7 @@ define(["require", "exports", "./DocumentPositionUtil", "../../lib/oop.js", "../
         return TypeScriptWorker;
     }());
     exports.TypeScriptWorker = TypeScriptWorker;
-    oop_js_1.default.inherits(TypeScriptWorker, mirror_js_1.Mirror);
+    oop.inherits(TypeScriptWorker, mirror_1.Mirror);
     (function () {
         var proto = this;
         ["getTypeAtPosition",
@@ -124,4 +125,4 @@ define(["require", "exports", "./DocumentPositionUtil", "../../lib/oop.js", "../
             };
         });
     }).call(TypeScriptWorker.prototype);
-});
+// });

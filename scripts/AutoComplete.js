@@ -1,4 +1,4 @@
-define(["require", "exports", "./lib/ace/keyboard/hash_handler.js", "./lib/ace/lib/event_emitter", "./AutoCompleteView", "./lib/ace/range.js", "./lib/ace/lib/oop"], function (require, exports, hash_handler_js_1, event_emitter_1, AutoCompleteView_1, range_js_1, oop_1) {
+define(["require", "exports", "./lib/ace/lib/event_emitter", "./AutoCompleteView", "./lib/ace/keyboard/hash_handler.js", "./lib/ace/range.js", "./lib/ace/lib/oop"], function (require, exports, event_emitter_1, AutoCompleteView_1, hash_handler_js_1, range_js_1, oop_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AutoComplete = void 0;

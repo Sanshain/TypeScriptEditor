@@ -29,10 +29,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 import {DocumentPositionUtil} from "./DocumentPositionUtil";
-import oop = require("ace/lib/oop");
-import {Mirror} from "ace/worker/mirror";
-import lang = require("ace/lib/lang");
-import {Document} from "ace/document";
+
+// const oop = require("ace/lib/oop");
+// const lang = require("ace/lib/lang");
+// import { Mirror } from "ace/worker/mirror";
+// import { Document } from "ace/document";
+
+import oop from "../../lib/oop.js";
+import lang from "../../lib/lang.js";
+import { Mirror } from "../../worker/mirror.js";
+import { Document } from "../../document.js";
 
 // The worker copy of the project
 import {getTSProject} from "./tsProject";

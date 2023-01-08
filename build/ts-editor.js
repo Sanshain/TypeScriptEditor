@@ -555,6 +555,258 @@
 
         var Range_1 = Range;
 
+    /* ***** BEGIN LICENSE BLOCK *****
+     * Distributed under the BSD license:
+     *
+     * Copyright (c) 2010, Ajax.org B.V.
+     * All rights reserved.
+     * 
+     * Redistribution and use in source and binary forms, with or without
+     * modification, are permitted provided that the following conditions are met:
+     *     * Redistributions of source code must retain the above copyright
+     *       notice, this list of conditions and the following disclaimer.
+     *     * Redistributions in binary form must reproduce the above copyright
+     *       notice, this list of conditions and the following disclaimer in the
+     *       documentation and/or other materials provided with the distribution.
+     *     * Neither the name of Ajax.org B.V. nor the
+     *       names of its contributors may be used to endorse or promote products
+     *       derived from this software without specific prior written permission.
+     * 
+     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+     * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+     * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+     * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     *
+     * ***** END LICENSE BLOCK ***** */
+
+    var EventEmitter = {};
+    var stopPropagation = function() { this.propagationStopped = true; };
+    var preventDefault = function() { this.defaultPrevented = true; };
+
+    EventEmitter._emit =
+    EventEmitter._dispatchEvent = function(eventName, e) {
+        this._eventRegistry || (this._eventRegistry = {});
+        this._defaultHandlers || (this._defaultHandlers = {});
+
+        var listeners = this._eventRegistry[eventName] || [];
+        var defaultHandler = this._defaultHandlers[eventName];
+        if (!listeners.length && !defaultHandler)
+            return;
+
+        if (typeof e != "object" || !e)
+            e = {};
+
+        if (!e.type)
+            e.type = eventName;
+        if (!e.stopPropagation)
+            e.stopPropagation = stopPropagation;
+        if (!e.preventDefault)
+            e.preventDefault = preventDefault;
+
+        listeners = listeners.slice();
+        for (var i=0; i<listeners.length; i++) {
+            listeners[i](e, this);
+            if (e.propagationStopped)
+                break;
+        }
+        
+        if (defaultHandler && !e.defaultPrevented)
+            return defaultHandler(e, this);
+    };
+
+
+    EventEmitter._signal = function(eventName, e) {
+        var listeners = (this._eventRegistry || {})[eventName];
+        if (!listeners)
+            return;
+        listeners = listeners.slice();
+        for (var i=0; i<listeners.length; i++)
+            listeners[i](e, this);
+    };
+
+    EventEmitter.once = function(eventName, callback) {
+        var _self = this;
+        callback && this.addEventListener(eventName, function newCallback() {
+            _self.removeEventListener(eventName, newCallback);
+            callback.apply(null, arguments);
+        });
+    };
+
+
+    EventEmitter.setDefaultHandler = function(eventName, callback) {
+        var handlers = this._defaultHandlers;
+        if (!handlers)
+            handlers = this._defaultHandlers = {_disabled_: {}};
+        
+        if (handlers[eventName]) {
+            var old = handlers[eventName];
+            var disabled = handlers._disabled_[eventName];
+            if (!disabled)
+                handlers._disabled_[eventName] = disabled = [];
+            disabled.push(old);
+            var i = disabled.indexOf(callback);
+            if (i != -1) 
+                disabled.splice(i, 1);
+        }
+        handlers[eventName] = callback;
+    };
+    EventEmitter.removeDefaultHandler = function(eventName, callback) {
+        var handlers = this._defaultHandlers;
+        if (!handlers)
+            return;
+        var disabled = handlers._disabled_[eventName];
+        
+        if (handlers[eventName] == callback) {
+            handlers[eventName];
+            if (disabled)
+                this.setDefaultHandler(eventName, disabled.pop());
+        } else if (disabled) {
+            var i = disabled.indexOf(callback);
+            if (i != -1)
+                disabled.splice(i, 1);
+        }
+    };
+
+    EventEmitter.on =
+    EventEmitter.addEventListener = function(eventName, callback, capturing) {
+        this._eventRegistry = this._eventRegistry || {};
+
+        var listeners = this._eventRegistry[eventName];
+        if (!listeners)
+            listeners = this._eventRegistry[eventName] = [];
+
+        if (listeners.indexOf(callback) == -1)
+            listeners[capturing ? "unshift" : "push"](callback);
+        return callback;
+    };
+
+    EventEmitter.off =
+    EventEmitter.removeListener =
+    EventEmitter.removeEventListener = function(eventName, callback) {
+        this._eventRegistry = this._eventRegistry || {};
+
+        var listeners = this._eventRegistry[eventName];
+        if (!listeners)
+            return;
+
+        var index = listeners.indexOf(callback);
+        if (index !== -1)
+            listeners.splice(index, 1);
+    };
+
+    EventEmitter.removeAllListeners = function(eventName) {
+        if (this._eventRegistry) this._eventRegistry[eventName] = [];
+    };
+
+    var EventEmitter_1 = EventEmitter;
+
+    class AutoCompleteView {
+        constructor(editor, autoComplete) {
+            this.editor = editor;
+            this.autoComplete = autoComplete;
+            this.selectedClassName = 'ace_autocomplete_selected';
+            this.wrap = document.createElement('div');
+            this.listElement = document.createElement('ul');
+            this.wrap.className = 'ace_autocomplete';
+            this.wrap.style.display = 'none';
+            this.listElement.style.listStyleType = 'none';
+            this.wrap.style.position = 'fixed';
+            this.wrap.style.zIndex = '1000';
+            this.wrap.appendChild(this.listElement);
+        }
+        show() {
+            return this.wrap.style.display = 'block';
+        }
+        ;
+        hide() {
+            return this.wrap.style.display = 'none';
+        }
+        ;
+        setPosition(coords) {
+            var bottom, editorBottom, top;
+            top = coords.pageY + 20;
+            editorBottom = $(this.editor.container).offset().top + $(this.editor.container).height();
+            bottom = top + $(this.wrap).height();
+            if (bottom < editorBottom) {
+                this.wrap.style.top = top + 'px';
+                return this.wrap.style.left = coords.pageX + 'px';
+            }
+            else {
+                this.wrap.style.top = (top - $(this.wrap).height() - 20) + 'px';
+                return this.wrap.style.left = coords.pageX + 'px';
+            }
+        }
+        ;
+        current() {
+            var child, children, i;
+            children = this.listElement.childNodes;
+            for (i in children) {
+                child = children[i];
+                if (child.className === this.selectedClassName)
+                    return child;
+            }
+            return null;
+        }
+        ;
+        focusNext() {
+            var curr, focus;
+            curr = this.current();
+            focus = curr.nextSibling;
+            if (focus) {
+                curr.className = '';
+                focus.className = this.selectedClassName;
+                return this.adjustPosition();
+            }
+        }
+        ;
+        focusPrev() {
+            var curr, focus;
+            curr = this.current();
+            focus = curr.previousSibling;
+            if (focus) {
+                curr.className = '';
+                focus.className = this.selectedClassName;
+                return this.adjustPosition();
+            }
+        }
+        ;
+        ensureFocus() {
+            if (!this.current()) {
+                if (this.listElement.firstChild) {
+                    this.listElement.firstChild.className = this.selectedClassName;
+                    return this.adjustPosition();
+                }
+            }
+        }
+        ;
+        adjustPosition() {
+            var elm, elmOuterHeight, newMargin, pos, preMargin, wrapHeight;
+            elm = this.current();
+            if (elm) {
+                newMargin = '';
+                wrapHeight = $(this.wrap).height();
+                elmOuterHeight = $(elm).outerHeight();
+                preMargin = parseInt($(this.listElement).css("margin-top").replace('px', ''), 10);
+                pos = $(elm).position();
+                if (pos.top >= (wrapHeight - elmOuterHeight)) {
+                    newMargin = (preMargin - elmOuterHeight) + 'px';
+                    $(this.listElement).css("margin-top", newMargin);
+                }
+                if (pos.top < 0) {
+                    newMargin = (-pos.top + preMargin) + 'px';
+                    return $(this.listElement).css("margin-top", newMargin);
+                }
+            }
+        }
+        ;
+    }
+
     var keys = {};
 
     /*
@@ -2275,258 +2527,6 @@
 
     var HashHandler_1 = HashHandler;
 
-    /* ***** BEGIN LICENSE BLOCK *****
-     * Distributed under the BSD license:
-     *
-     * Copyright (c) 2010, Ajax.org B.V.
-     * All rights reserved.
-     * 
-     * Redistribution and use in source and binary forms, with or without
-     * modification, are permitted provided that the following conditions are met:
-     *     * Redistributions of source code must retain the above copyright
-     *       notice, this list of conditions and the following disclaimer.
-     *     * Redistributions in binary form must reproduce the above copyright
-     *       notice, this list of conditions and the following disclaimer in the
-     *       documentation and/or other materials provided with the distribution.
-     *     * Neither the name of Ajax.org B.V. nor the
-     *       names of its contributors may be used to endorse or promote products
-     *       derived from this software without specific prior written permission.
-     * 
-     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-     * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-     * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-     * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
-     * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-     * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-     * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-     * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-     * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-     *
-     * ***** END LICENSE BLOCK ***** */
-
-    var EventEmitter = {};
-    var stopPropagation = function() { this.propagationStopped = true; };
-    var preventDefault = function() { this.defaultPrevented = true; };
-
-    EventEmitter._emit =
-    EventEmitter._dispatchEvent = function(eventName, e) {
-        this._eventRegistry || (this._eventRegistry = {});
-        this._defaultHandlers || (this._defaultHandlers = {});
-
-        var listeners = this._eventRegistry[eventName] || [];
-        var defaultHandler = this._defaultHandlers[eventName];
-        if (!listeners.length && !defaultHandler)
-            return;
-
-        if (typeof e != "object" || !e)
-            e = {};
-
-        if (!e.type)
-            e.type = eventName;
-        if (!e.stopPropagation)
-            e.stopPropagation = stopPropagation;
-        if (!e.preventDefault)
-            e.preventDefault = preventDefault;
-
-        listeners = listeners.slice();
-        for (var i=0; i<listeners.length; i++) {
-            listeners[i](e, this);
-            if (e.propagationStopped)
-                break;
-        }
-        
-        if (defaultHandler && !e.defaultPrevented)
-            return defaultHandler(e, this);
-    };
-
-
-    EventEmitter._signal = function(eventName, e) {
-        var listeners = (this._eventRegistry || {})[eventName];
-        if (!listeners)
-            return;
-        listeners = listeners.slice();
-        for (var i=0; i<listeners.length; i++)
-            listeners[i](e, this);
-    };
-
-    EventEmitter.once = function(eventName, callback) {
-        var _self = this;
-        callback && this.addEventListener(eventName, function newCallback() {
-            _self.removeEventListener(eventName, newCallback);
-            callback.apply(null, arguments);
-        });
-    };
-
-
-    EventEmitter.setDefaultHandler = function(eventName, callback) {
-        var handlers = this._defaultHandlers;
-        if (!handlers)
-            handlers = this._defaultHandlers = {_disabled_: {}};
-        
-        if (handlers[eventName]) {
-            var old = handlers[eventName];
-            var disabled = handlers._disabled_[eventName];
-            if (!disabled)
-                handlers._disabled_[eventName] = disabled = [];
-            disabled.push(old);
-            var i = disabled.indexOf(callback);
-            if (i != -1) 
-                disabled.splice(i, 1);
-        }
-        handlers[eventName] = callback;
-    };
-    EventEmitter.removeDefaultHandler = function(eventName, callback) {
-        var handlers = this._defaultHandlers;
-        if (!handlers)
-            return;
-        var disabled = handlers._disabled_[eventName];
-        
-        if (handlers[eventName] == callback) {
-            handlers[eventName];
-            if (disabled)
-                this.setDefaultHandler(eventName, disabled.pop());
-        } else if (disabled) {
-            var i = disabled.indexOf(callback);
-            if (i != -1)
-                disabled.splice(i, 1);
-        }
-    };
-
-    EventEmitter.on =
-    EventEmitter.addEventListener = function(eventName, callback, capturing) {
-        this._eventRegistry = this._eventRegistry || {};
-
-        var listeners = this._eventRegistry[eventName];
-        if (!listeners)
-            listeners = this._eventRegistry[eventName] = [];
-
-        if (listeners.indexOf(callback) == -1)
-            listeners[capturing ? "unshift" : "push"](callback);
-        return callback;
-    };
-
-    EventEmitter.off =
-    EventEmitter.removeListener =
-    EventEmitter.removeEventListener = function(eventName, callback) {
-        this._eventRegistry = this._eventRegistry || {};
-
-        var listeners = this._eventRegistry[eventName];
-        if (!listeners)
-            return;
-
-        var index = listeners.indexOf(callback);
-        if (index !== -1)
-            listeners.splice(index, 1);
-    };
-
-    EventEmitter.removeAllListeners = function(eventName) {
-        if (this._eventRegistry) this._eventRegistry[eventName] = [];
-    };
-
-    var EventEmitter_1 = EventEmitter;
-
-    class AutoCompleteView {
-        constructor(editor, autoComplete) {
-            this.editor = editor;
-            this.autoComplete = autoComplete;
-            this.selectedClassName = 'ace_autocomplete_selected';
-            this.wrap = document.createElement('div');
-            this.listElement = document.createElement('ul');
-            this.wrap.className = 'ace_autocomplete';
-            this.wrap.style.display = 'none';
-            this.listElement.style.listStyleType = 'none';
-            this.wrap.style.position = 'fixed';
-            this.wrap.style.zIndex = '1000';
-            this.wrap.appendChild(this.listElement);
-        }
-        show() {
-            return this.wrap.style.display = 'block';
-        }
-        ;
-        hide() {
-            return this.wrap.style.display = 'none';
-        }
-        ;
-        setPosition(coords) {
-            var bottom, editorBottom, top;
-            top = coords.pageY + 20;
-            editorBottom = $(this.editor.container).offset().top + $(this.editor.container).height();
-            bottom = top + $(this.wrap).height();
-            if (bottom < editorBottom) {
-                this.wrap.style.top = top + 'px';
-                return this.wrap.style.left = coords.pageX + 'px';
-            }
-            else {
-                this.wrap.style.top = (top - $(this.wrap).height() - 20) + 'px';
-                return this.wrap.style.left = coords.pageX + 'px';
-            }
-        }
-        ;
-        current() {
-            var child, children, i;
-            children = this.listElement.childNodes;
-            for (i in children) {
-                child = children[i];
-                if (child.className === this.selectedClassName)
-                    return child;
-            }
-            return null;
-        }
-        ;
-        focusNext() {
-            var curr, focus;
-            curr = this.current();
-            focus = curr.nextSibling;
-            if (focus) {
-                curr.className = '';
-                focus.className = this.selectedClassName;
-                return this.adjustPosition();
-            }
-        }
-        ;
-        focusPrev() {
-            var curr, focus;
-            curr = this.current();
-            focus = curr.previousSibling;
-            if (focus) {
-                curr.className = '';
-                focus.className = this.selectedClassName;
-                return this.adjustPosition();
-            }
-        }
-        ;
-        ensureFocus() {
-            if (!this.current()) {
-                if (this.listElement.firstChild) {
-                    this.listElement.firstChild.className = this.selectedClassName;
-                    return this.adjustPosition();
-                }
-            }
-        }
-        ;
-        adjustPosition() {
-            var elm, elmOuterHeight, newMargin, pos, preMargin, wrapHeight;
-            elm = this.current();
-            if (elm) {
-                newMargin = '';
-                wrapHeight = $(this.wrap).height();
-                elmOuterHeight = $(elm).outerHeight();
-                preMargin = parseInt($(this.listElement).css("margin-top").replace('px', ''), 10);
-                pos = $(elm).position();
-                if (pos.top >= (wrapHeight - elmOuterHeight)) {
-                    newMargin = (preMargin - elmOuterHeight) + 'px';
-                    $(this.listElement).css("margin-top", newMargin);
-                }
-                if (pos.top < 0) {
-                    newMargin = (-pos.top + preMargin) + 'px';
-                    return $(this.listElement).css("margin-top", newMargin);
-                }
-            }
-        }
-        ;
-    }
-
     class AutoComplete {
         constructor(editor, script, completionService) {
             this.editor = editor;
@@ -2988,8 +2988,8 @@
         };
     }
 
-    if (typeof importScripts !== 'undefined') {
-        importScripts('../mode/typescript/typescriptServices.js');
+    if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
+        importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js');
     }
     class TsProject {
         constructor() {
@@ -3374,6 +3374,7 @@
                 var end = getpos(error.limChar);
                 var range = new Range_1(start.row, start.column, end.row, end.column);
                 errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
+                console.log(error);
             });
         });
     });
