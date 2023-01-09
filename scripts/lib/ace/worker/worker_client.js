@@ -59,18 +59,20 @@ var config = require("../config");
 
     try {
         this.$worker = new Worker(workerUrl);
-    } catch (e) {        
+    } catch (e) {
         if (e instanceof window.DOMException) {
             // Likely same origin problem. Use importScripts from a shim Worker
             var blob = this.$workerBlob(workerUrl);
             var URL = window.URL || window.webkitURL;
-            var blobURL = URL.createObjectURL(blob);            
+            var blobURL = URL.createObjectURL(blob);
             this.$worker = new Worker(blobURL);
             URL.revokeObjectURL(blobURL);
         } else {
             throw e;
         }
     }
+    
+    debugger;
     this.$worker.postMessage({
         init : true,
         tlns : tlns,
