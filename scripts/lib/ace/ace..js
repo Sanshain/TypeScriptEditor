@@ -17675,9 +17675,9 @@ function createWorker(workerUrl) {
     if (config.get("loadWorkerFromBlob")) {
         var blob = $workerBlob(workerUrl);
         var URL = window.URL || window.webkitURL;
-        var blobURL = URL.createObjectURL(blob);
+        var blobURL = URL.createObjectURL(blob);                
         return new Worker(blobURL);
-    }
+    }    
     return new Worker(workerUrl);
 }
 
@@ -17720,6 +17720,7 @@ var WorkerClient = function(worker) {
         if (importScripts) {
             this.send("importScripts", importScripts);
         }
+        debugger;
         this.$worker.postMessage({
             init : true,
             tlns : tlns,

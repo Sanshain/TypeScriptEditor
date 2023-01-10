@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 
 import amd from 'rollup-plugin-amd';
 import replace from '@rollup/plugin-replace';
+// import rollup from 'rollup'
 
 
 import typescript from '@rollup/plugin-typescript';
@@ -12,10 +13,13 @@ import { createFilter } from '@rollup/pluginutils';
 
 
 import MagicString from 'magic-string'
+import { uglify } from "rollup-plugin-uglify";
 // module.exports = {}
 
 
-
+import path from 'path';
+import fs from 'fs';
+const execSync = require('child_process').execSync;
 
 
 const smartConverter = {
@@ -99,7 +103,7 @@ const smartConverter = {
     }
 }
 
-
+const MINIFY = true;
 
 
 
@@ -108,8 +112,17 @@ export default [
         // input: './scripts/lib/ace/worker-typescript.src.js',
         input: './scripts/lib/ace/mode/typescript/typescript_worker.ts',
         output: {
-            file: './scripts/lib/ace/worker-typescript.js',
-            format: 'iife'
+            file: './scripts/lib/ace/mode/typescript/typescript_worker.cjs.js',
+            // file: './scripts/lib/ace/worker-typescript.js', <= its wrong because:
+            //      lib/ace/worker.js is entrypoint =>
+            //          => build 'lib/ace/(worker/worker.js + mode/typescript_worker.js)' => worker-typescript.js
+            //      src/mode/typescript.js is entrypoint =>
+            //          => mode-typescript.js
+            
+            // The generated file is playing role of content for 'lib/ace/mode/typescript_worker.js' wrapped to define func
+
+            // format: 'iife'
+            format: 'cjs'
         },
         plugins: [
             resolve({
@@ -148,7 +161,33 @@ export default [
                 // compilerOptions: {
                 //     preserveSymlinks: false
                 // }            
-            })
+            }),
+            (function(target, dest) {
+                return {
+                    name: 'Svelte Inliner',
+                    /**
+                     * Wrap generated cjs file to define func => save to origin ace project => build origin ace project => copy generated to the origin dir worker-typescript.js
+                     * 
+                     * @param {{file: string}} opts - options
+                     * @param {{[fileName: string]: {code: string}}} bundle - generated cjs content for 'typescript_worker.js'
+                     */
+                    generateBundle(opts, bundle) {                        
+
+                        const file = path.parse(opts.file).base
+                        let code = bundle[file].code
+                        code = `define(function(require, exports, module) {\n\n${code}\n\n});`
+                        fs.writeFileSync(target, code);
+                        
+                        let r = execSync('node ../ace/Makefile.dryice.js' + (MINIFY ? ' -m' : ''));
+                        console.log(r.toString());
+
+                        fs.copyFile('../ace/build/src/worker-typescript.js', './scripts/lib/ace/worker-typescript.r.js', function (err) {
+                            if (err) throw err;
+                            console.log('worker-typescript.js was copied to the "scripts/lib/ace/" directory');
+                        })                        
+                    }
+                }
+            })('../ace/lib/ace/mode/typescript_worker.js')
         ]
     },
     {
@@ -208,5 +247,8 @@ export default [
                 //     preserveSymlinks: false
                 // }            
             }),
+            uglify({
+                mangle: false
+            })
         ]
     }];

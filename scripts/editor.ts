@@ -340,8 +340,7 @@ $(function(){
         // outputEditor.getSession().doc.setValue(e.data);
     });
 
-    editor.getSession().on("compileErrors", function (e) {
-        alert(99)
+    editor.getSession().on("compileErrors", function (e) {        
         var session = editor.getSession();
         errorMarkers.forEach(function (id){
             session.removeMarker(id);

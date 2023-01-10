@@ -9,7 +9,11 @@ exports.createWorker = function(session) {
         // WorkerClient will load `ace`. 
         ["ace"], 
         // The worker client is itself located in this file
-        "ace/mode/typescript/typescript_worker",
+        
+        // "ace/mode/typescript/typescript_worker",
+        /// change "ace/mode/typescript/typescript_worker" => "ace/mode/typescript_worker" (look up original ace fork of Sanshain because the build occurs over there)
+        
+        "ace/mode/typescript_worker",
         // And within the file it wants this member as the worker class
         "TypeScriptWorker"
     );

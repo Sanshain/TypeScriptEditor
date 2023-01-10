@@ -834,7 +834,8 @@ var WorkerClient = require("ace/worker/worker_client").WorkerClient;
 exports.createWorker = function (session) {
     var worker = new WorkerClient(
     ["ace"], 
-    "ace/mode/typescript/typescript_worker", 
+    // "ace/mode/typescript/typescript_worker", 
+    'ace/mode/typescript_worker',    
     "TypeScriptWorker");
     worker.attachToDocument(session.getDocument());
     worker.on("terminate", function () {

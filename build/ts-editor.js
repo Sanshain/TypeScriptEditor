@@ -3363,7 +3363,6 @@
         editor.getSession().on("compiled", function (e) {
         });
         editor.getSession().on("compileErrors", function (e) {
-            alert(99);
             var session = editor.getSession();
             errorMarkers.forEach(function (id) {
                 session.removeMarker(id);

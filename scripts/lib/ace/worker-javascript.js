@@ -1,5 +1,5 @@
 "no use strict";
-!(function(window) {
+!(function(window) {  
 if (typeof window.window != "undefined" && window.document)
     return;
 if (window.require && window.define)
@@ -57,9 +57,10 @@ window.require = function require(parentId, id) {
     if (!id.charAt)
         throw new Error("worker.js require() accepts only (parentId, id) as arguments");
 
-    id = window.normalizeModule(parentId, id);
+    id = window.normalizeModule(parentId, id);    
 
     var module = window.require.modules[id];
+  debugger;
     if (module) {
         if (!module.initialized) {
             module.initialized = true;
@@ -76,6 +77,7 @@ window.require = function require(parentId, id) {
     
     window.require.id = id;
     window.require.modules[id] = {}; // prevent infinite loop on broken modules
+    debugger;
     importScripts(path);
     return window.require(parentId, id);
 };
