@@ -2546,7 +2546,9 @@
                 var coords = _this.editor.renderer.textToScreenCoordinates(cursor.row, cursor.column - text.length);
                 _this.view.setPosition(coords);
                 _this.inputText = text;
-                var compilations = compilationInfo.entries;
+                if (!compilationInfo)
+                    console.log('compilationInfo is undefined');
+                var compilations = (compilationInfo || { entries: [] }).entries;
                 if (_this.inputText.length > 0) {
                     compilations = compilationInfo.entries.filter(function (elm) {
                         return elm.name.toLowerCase().indexOf(_this.inputText.toLowerCase()) == 0;
@@ -2990,7 +2992,7 @@
     }
 
     if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
-        importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js');
+        importScripts('https://cdnjs.cloudflare.com/ajax/libs/typescript/4.6.4/typescript.min.js');
     }
     var TsProject = (function () {
         function TsProject() {
@@ -3373,7 +3375,6 @@
                 var end = getpos(error.limChar);
                 var range = new Range_1(start.row, start.column, end.row, end.column);
                 errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
-                console.log(error);
             });
         });
     });

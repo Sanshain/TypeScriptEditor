@@ -2277,7 +2277,7 @@ function createScriptInfo(content) {
 }
 
 if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
-    importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js');
+    importScripts('https://cdnjs.cloudflare.com/ajax/libs/typescript/4.6.4/typescript.min.js');
 }
 var TsProject = (function () {
     function TsProject() {

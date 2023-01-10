@@ -171,7 +171,7 @@ function editLanguageService(name, minChar,limChar,newText){
 function onChangeCursor(e){
     if(!syncStop){
         try{
-            deferredShowOccurrences.schedule(200);
+            deferredShowOccurrences.schedule(200);            
         }catch (ex){
             //TODO
         }
@@ -235,7 +235,7 @@ function showOccurrences(){
     refMarkers.forEach(function (id){
         session.removeMarker(id);
     });
-    
+        
     let references = tsProject.languageService.getOccurrencesAtPosition(selectFileName, aceEditorPosition.getCurrentCharPosition());
     if(!references){
         // none found. This is a valid response
@@ -350,8 +350,7 @@ $(function(){
             var start = getpos(error.minChar);
             var end = getpos(error.limChar);
             var range = new AceRange(start.row, start.column, end.row, end.column);
-            errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
-            console.log(error);            
+            errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));            
         });
     });    
     

@@ -151,7 +151,9 @@ export class AutoComplete {
         this.view.setPosition(coords);
         this.inputText = text;
 
-        var compilations = compilationInfo.entries;
+        if (!compilationInfo) console.log('compilationInfo is undefined')
+
+        var compilations = (compilationInfo || { entries: []}).entries;
 
         if (this.inputText.length > 0){
             compilations = compilationInfo.entries.filter((elm)=>{

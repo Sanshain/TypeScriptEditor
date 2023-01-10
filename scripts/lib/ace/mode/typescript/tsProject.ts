@@ -3,13 +3,22 @@
 // Load up ts ourselves
 if (typeof importScripts !== 'undefined' && globalThis.ts === undefined) {
     // Path needs to be relative to `ace/worker`
+    
+    /// :::legacy (dont work:)
     // importScripts('../mode/typescript/typescriptServices.js')
     // importScripts('./mode/typescript/typescriptServices.js')
-    // importScripts(document.location.origin + '/scripts/lib/ace/mode/typescript/typescriptServices.ts');
+
+    /// :::too (слишком) new:
+    // importScripts('https://unpkg.com/typescript@latest/lib/typescriptServices.js')
+
+    /// :::below works: 
     
-    // importScripts('https://cdnjs.cloudflare.com/ajax/libs/typescript/4.9.4/typescript.min.js')
-    // importScripts('https://unpkg.com/typescript@latest/lib/typescriptServices.js')    
-    importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js')
+    /// :absolute path (unpractical):
+    // importScripts(location.origin + '/scripts/lib/ace/mode/typescript/typescriptServices.js');        
+    /// :starting from ver 4.6.4 the remote script is not downloading (on low speed connection may be download old vers like 2.1.1 - its only 1mb instead of 3mb minified):
+    importScripts('https://cdnjs.cloudflare.com/ajax/libs/typescript/4.6.4/typescript.min.js')
+    /// :nearly origin:
+    // importScripts('https://unpkg.com/typescript@1.5.3/bin/typescript.js')
 }
 
 import {createLanguageServiceHost, LanguageServiceHost} from "./languageServiceHost";

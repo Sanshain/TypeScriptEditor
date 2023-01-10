@@ -103,7 +103,7 @@ const smartConverter = {
     }
 }
 
-const MINIFY = true;
+const MINIFY = false;
 
 
 
@@ -164,7 +164,7 @@ export default [
             }),
             (function(target, dest) {
                 return {
-                    name: 'Svelte Inliner',
+                    name: 'ace-builder',
                     /**
                      * Wrap generated cjs file to define func => save to origin ace project => build origin ace project => copy generated to the origin dir worker-typescript.js
                      * 
@@ -175,16 +175,30 @@ export default [
 
                         const file = path.parse(opts.file).base
                         let code = bundle[file].code
-                        code = `define(function(require, exports, module) {\n\n${code}\n\n});`
-                        fs.writeFileSync(target, code);
+                        code = `define(function(require, exports, module) {\n\n${code}\n\n});`                        
+                        fs.writeFileSync(target, code);     //// => ace/lib/ace/mode/typescript_worker                      /// => worker-typescript.js
                         
-                        let r = execSync('node ../ace/Makefile.dryice.js' + (MINIFY ? ' -m' : ''));
-                        console.log(r.toString());
+                        [
+                            'typescript.js',
+                            'typescript/typescript_create_worker.js'
+                        ]
+                            .forEach(_file => {
+                                const definedTsMode = fs.readFileSync(`./scripts/lib/ace/mode/${_file}`);
+                                const tsModeCjs = smartConverter.defineToCjs().transform(definedTsMode.toString(), _file)
+                                fs.writeFileSync(`../ace/src/mode/${_file}`, tsModeCjs.code);                          /// => mode-typescript.js
+                            })
+                        
+                        let output = execSync('node ../ace/Makefile.dryice.js' + (MINIFY ? ' -m' : ''));
+                        console.log(output.toString());
 
-                        fs.copyFile('../ace/build/src/worker-typescript.js', './scripts/lib/ace/worker-typescript.r.js', function (err) {
-                            if (err) throw err;
-                            console.log('worker-typescript.js was copied to the "scripts/lib/ace/" directory');
-                        })                        
+                        ['mode', 'worker'].forEach(mode => {
+
+                            fs.copyFile(`../ace/build/src${MINIFY ? '-min' : ''}/${mode}-typescript.js`, `./scripts/lib/ace/${mode}-typescript.js`, function (err) {
+                                if (err) throw err;
+                                console.log(`${mode}-typescript.js was copied to the "scripts/lib/ace/" directory`);
+                            })
+                        })
+
                     }
                 }
             })('../ace/lib/ace/mode/typescript_worker.js')
@@ -246,9 +260,10 @@ export default [
                 // compilerOptions: {
                 //     preserveSymlinks: false
                 // }            
-            }),
+            })
+        ].concat(MINIFY ? [
             uglify({
                 mangle: false
             })
-        ]
+        ] : [])
     }];
