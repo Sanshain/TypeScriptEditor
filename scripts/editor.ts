@@ -9,7 +9,7 @@ import {CompletionService} from './CompletionService';
 import { deferredCall } from "./lib/ace/lib/lang";
 
 
-export function defaultFormatCodeOptions(): ts.FormatCodeOptions {
+function defaultFormatCodeOptions(): ts.FormatCodeOptions {
     return {
         IndentSize: 4,
         TabSize: 4,
@@ -71,16 +71,20 @@ function loadLibFiles(){
     }, 100);
 }
 
-function loadFile(filename) {
+function loadFile(filename: string) {
     readFile(filename, function(content){
-        selectFileName = filename;
-        syncStop = true;
-        var data = content.replace(/\r\n?/g,"\n");
-        editor.setValue(data);
-        editor.moveCursorTo(0, 0);
-        tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
-        syncStop = false;
+        loadContent(filename, content);
     });
+}
+
+function loadContent(filename: string, content: string) {
+    selectFileName = filename;
+    syncStop = true;
+    var data = content.replace(/\r\n?/g, "\n");
+    editor.setValue(data);
+    editor.moveCursorTo(0, 0);
+    tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
+    syncStop = false;
 }
 
 function startAutoComplete(editor){
@@ -266,8 +270,12 @@ function workerOnCreate(func, timeout){
 }
 
 
-$(function(){
-    editor = ace.edit("editor");
+export default function initialize(options: {selector?: string, contentFile?: string, content?: string}) {
+    
+    const selector = options.selector || "editor";
+
+
+    editor = ace.edit(selector);
     editor.setTheme("ace/theme/monokai");    
     editor.getSession().setMode('ace/mode/typescript');
     // editor.getSession().setMode('ace/mode/javascript');    
@@ -277,11 +285,18 @@ $(function(){
     // outputEditor.setTheme("ace/theme/monokai");
     // outputEditor.getSession().setMode('ace/mode/javascript');
 
-    document.getElementById('editor').style.fontSize='14px';
-    document.getElementById('output').style.fontSize='14px';
+    document.getElementById(selector).style.fontSize='14px';
+    // document.getElementById('output').style.fontSize='14px';
 
     loadLibFiles();
-    loadFile("samples/greeter.ts");
+    if (options.content) {
+        loadContent(options.contentFile || 'app.ts', options.content)
+    }
+    else {        
+        // if (options.contentFile)
+        loadFile(options.contentFile || "samples/greeter.ts");
+    }
+    
 
     editor.addEventListener("change", onUpdateDocument);
     editor.addEventListener("changeSelection", onChangeCursor);
@@ -345,7 +360,7 @@ $(function(){
         errorMarkers.forEach(function (id){
             session.removeMarker(id);
         });
-        e.data.forEach(function(error){
+        e.data.forEach(function(error: { minChar: any; limChar: any; }){
             var getpos = aceEditorPosition.getAcePositionFromChars;
             var start = getpos(error.minChar);
             var end = getpos(error.limChar);
@@ -364,4 +379,4 @@ $(function(){
     //     loadFile(path);
     // });
 
-});
+}

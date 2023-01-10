@@ -1,4 +1,4 @@
-(function (exports) {
+var tsIDEInitialize = (function () {
     'use strict';
 
     function readFile(path, cb) {
@@ -2547,7 +2547,7 @@
                 _this.view.setPosition(coords);
                 _this.inputText = text;
                 if (!compilationInfo)
-                    console.log('compilationInfo is undefined');
+                    console.log('`compilationInfo` is undefined');
                 var compilations = (compilationInfo || { entries: [] }).entries;
                 if (_this.inputText.length > 0) {
                     compilations = compilationInfo.entries.filter(function (elm) {
@@ -3152,14 +3152,17 @@
     }
     function loadFile(filename) {
         readFile(filename, function (content) {
-            selectFileName = filename;
-            syncStop = true;
-            var data = content.replace(/\r\n?/g, "\n");
-            editor.setValue(data);
-            editor.moveCursorTo(0, 0);
-            tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
-            syncStop = false;
+            loadContent(filename, content);
         });
+    }
+    function loadContent(filename, content) {
+        selectFileName = filename;
+        syncStop = true;
+        var data = content.replace(/\r\n?/g, "\n");
+        editor.setValue(data);
+        editor.moveCursorTo(0, 0);
+        tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
+        syncStop = false;
     }
     function startAutoComplete(editor) {
         if (autoComplete.isActive() == false) {
@@ -3310,14 +3313,19 @@
             });
         }
     }
-    $(function () {
-        editor = ace.edit("editor");
+    function initialize(options) {
+        var selector = options.selector || "editor";
+        editor = ace.edit(selector);
         editor.setTheme("ace/theme/monokai");
         editor.getSession().setMode('ace/mode/typescript');
-        document.getElementById('editor').style.fontSize = '14px';
-        document.getElementById('output').style.fontSize = '14px';
+        document.getElementById(selector).style.fontSize = '14px';
         loadLibFiles();
-        loadFile("samples/greeter.ts");
+        if (options.content) {
+            loadContent(options.contentFile || 'app.ts', options.content);
+        }
+        else {
+            loadFile(options.contentFile || "samples/greeter.ts");
+        }
         editor.addEventListener("change", onUpdateDocument);
         editor.addEventListener("changeSelection", onChangeCursor);
         editor.commands.addCommands([{
@@ -3377,12 +3385,8 @@
                 errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
             });
         });
-    });
+    }
 
-    exports.defaultFormatCodeOptions = defaultFormatCodeOptions;
+    return initialize;
 
-    Object.defineProperty(exports, '__esModule', { value: true });
-
-    return exports;
-
-})({});
+})();
