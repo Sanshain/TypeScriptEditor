@@ -54,7 +54,29 @@ To find out how ace works and how it is assembled, I cloned the original ace rep
 
 - File `worker-typescript.js ` generated based on two files: lib/ace/worker/worker.js (it is the entry point if run in the original mode described at the beginning) and lib/ace/mode/typescript_worker.js (each of them is built separately during the build process, the first is built to iife, the second - to amd, then these two files will merge into one!).
 
+Since the ace editor build process was not transparent from the very beginning, I created a rollup config, then it can be seen that synchronized the typescript_worker build with copying the above files to the ace repository nearby, building it and copying it back
 
+Of course, I could have taken a different path and developed directly in the ace repository in the src folder, but since the original basaart repository originally had a working example, I did not dare to do this because of the possible version mismatch and the likelihood of futility of all work. So I decided to leave it as it is.
+
+### Notes: 
+
+- The typescript version was updated from 1.5.2 to 4.6.4. On later versions (^4.7.0), the error 'Cannot read undefined properties (reading 'target') from CompilerOptions inside getEmitScriptTarget` falls out
+
+## Using:
+
+### Build: 
+
+```shell
+rollup -c
+```
+
+### using: 
+
+```js
+tsIDEInitialize({selector: 'selector', entryFile: 'app.ts', content: content})
+```
+
+### Last sanbox from basarat:
 
 http://basarat.github.io/TypeScriptEditor/
 
