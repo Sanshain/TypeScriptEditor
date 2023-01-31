@@ -76,11 +76,7 @@ rollup -c
 tsIDEInitialize({selector: 'selector', entryFile: 'app.ts', content: content})
 ```
 
-### The sandbox: 
+## Sandbox: 
 
-https://sanshain.github.io/TypeScriptEditor/
-
-### Original sandbox from basarat:
-
-http://basarat.github.io/TypeScriptEditor/
-
+- [current](https://sanshain.github.io/TypeScriptEditor/) sandbox
+- [original](http://basarat.github.io/TypeScriptEditor/) from basarat
