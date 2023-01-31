@@ -70,7 +70,8 @@ var TypeScriptHighlightRules = function() {
         },  
         {
             token: ["keyword.operator.ts"],
-            regex: "(?:\\b(constructor|declare|interface|as|AS|public|private|class|extends|export|super)\\b)"
+            regex: "(?:\\b(constructor|declare|interface|as|AS|public|private|class|extends|export|super)\\b)",
+            // regex: "(?:\\b(constructor|declare|interface|as|AS|public|private|extends|export|super|readonly|module|namespace|abstract|implements)\\b)"
         }, 
         {
             token: ["storage.type.variable.ts"],

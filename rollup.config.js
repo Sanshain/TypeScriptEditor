@@ -177,9 +177,11 @@ export default [
     //                     let code = bundle[file].code
     //                     code = `define(function(require, exports, module) {\n\n${code}\n\n});`                        
     //                     fs.writeFileSync(target, code);     //// => ace/lib/ace/mode/typescript_worker                      /// => worker-typescript.js
-                        
+                                                
     //                     [
     //                         'typescript.js',
+    //                         // 'typescript_highlight_rules.js',
+    //                         // 'javascript_highlight_rules.js',
     //                         'typescript/typescript_create_worker.js'
     //                     ]
     //                         .forEach(_file => {
@@ -210,7 +212,7 @@ export default [
         output: {
             file: './build/ts-editor.js',
             format: 'iife',
-            name: 'tsIDEInitialize',
+            name: 'typescriptEditorInitialize',
             // sourcemap: true
         },
         plugins: [

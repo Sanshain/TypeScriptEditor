@@ -270,8 +270,9 @@ function workerOnCreate(func, timeout){
 }
 
 
-export default function initialize(options: {selector?: string, contentFile?: string, content?: string}) {
+export default function initialize(options: {selector?: string, entryFile?: string, content?: string}) {
     
+    options = options || {}
     const selector = options.selector || "editor";
 
 
@@ -290,11 +291,11 @@ export default function initialize(options: {selector?: string, contentFile?: st
 
     loadLibFiles();
     if (options.content) {
-        loadContent(options.contentFile || 'app.ts', options.content)
+        loadContent(options.entryFile || 'app.ts', options.content)
     }
     else {        
         // if (options.contentFile)
-        loadFile(options.contentFile || "samples/greeter.ts");
+        loadFile(options.entryFile || "samples/greeter.ts");
     }
     
 
@@ -331,16 +332,28 @@ export default function initialize(options: {selector?: string, contentFile?: st
 
     // override editor onTextInput
     var originalTextInput = editor.onTextInput;
-    editor.onTextInput = function (text){
-        originalTextInput.call(editor, text);
+    editor.onTextInput = function (text) {
+        originalTextInput.call(editor, text);        
+
+        // TODO: attempt autocomplete for all words (but something went wrong, adds extra characters)
+
+        // let pos = editor.getCursorPosition();
+        // let token = editor.session.getTokenAt(pos.row, pos.column);
+        // if (token && token.value.length > 1) {
+        //     editor.execCommand("autoComplete");
+        //     return
+        // }
+
         if(text == "."){
             editor.execCommand("autoComplete");
 
         }else if (editor.getSession().getDocument().isNewLine(text)) {
-            var lineNumber = editor.getCursorPosition().row;            
-            var indent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, defaultFormatCodeOptions());
+            var lineNumber = editor.getCursorPosition().row;
+            const prettierOptions: ts.FormatCodeOptions = defaultFormatCodeOptions();
+            var indent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, prettierOptions);
+            
             if(indent > 0) {
-                editor.commands.exec("inserttext", editor, {text:" ", times:indent});
+                editor.commands.exec("inserttext", editor, { text: " ", times: prettierOptions.IndentSize - 5});
             }
         }
     };

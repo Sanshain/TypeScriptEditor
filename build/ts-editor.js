@@ -1,4 +1,4 @@
-var tsIDEInitialize = (function () {
+var typescriptEditorInitialize = (function () {
     'use strict';
 
     function readFile(path, cb) {
@@ -3314,6 +3314,7 @@ var tsIDEInitialize = (function () {
         }
     }
     function initialize(options) {
+        options = options || {};
         var selector = options.selector || "editor";
         editor = ace.edit(selector);
         editor.setTheme("ace/theme/monokai");
@@ -3321,10 +3322,10 @@ var tsIDEInitialize = (function () {
         document.getElementById(selector).style.fontSize = '14px';
         loadLibFiles();
         if (options.content) {
-            loadContent(options.contentFile || 'app.ts', options.content);
+            loadContent(options.entryFile || 'app.ts', options.content);
         }
         else {
-            loadFile(options.contentFile || "samples/greeter.ts");
+            loadFile(options.entryFile || "samples/greeter.ts");
         }
         editor.addEventListener("change", onUpdateDocument);
         editor.addEventListener("changeSelection", onChangeCursor);
@@ -3359,9 +3360,10 @@ var tsIDEInitialize = (function () {
             }
             else if (editor.getSession().getDocument().isNewLine(text)) {
                 var lineNumber = editor.getCursorPosition().row;
-                var indent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, defaultFormatCodeOptions());
+                var prettierOptions = defaultFormatCodeOptions();
+                var indent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, prettierOptions);
                 if (indent > 0) {
-                    editor.commands.exec("inserttext", editor, { text: " ", times: indent });
+                    editor.commands.exec("inserttext", editor, { text: " ", times: prettierOptions.IndentSize - 5 });
                 }
             }
         };

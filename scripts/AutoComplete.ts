@@ -205,7 +205,8 @@ export class AutoComplete {
     };
 
     showCompilation = (infos: ts.CompletionEntry[]) => {
-        if (infos.length > 0){
+        if (infos.length > 0) {
+            
             this.view.show();
             var html = '';
             // TODO use template
@@ -215,6 +216,7 @@ export class AutoComplete {
                 var type =  '<span class="label-type">' + info.kind + '</span>';
                 var kind =  '<span class="label-kind label-kind-'+ info.kind + '">' + info.kind.charAt(0) + '</span>';
 
+                // let value = info.name // + (info.kind == 'keyword' ? ' ' : '') <= TODO attempts to set more one char after keyword
                 html += '<li data-name="' + info.name + '">' + kind + name + type + '</li>';
             }
             this.listElement.innerHTML = html;

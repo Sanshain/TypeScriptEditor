@@ -54,7 +54,7 @@ function loadLibFiles(){
     });
 
     // Load files in the worker
-    workerOnCreate(function(){//TODO use worker init event
+    workerOnCreate(function(){                                              //TODO use worker init event
         libFiles.forEach(function(libname){
             readFile(libname, function(content){
                 var params = {
