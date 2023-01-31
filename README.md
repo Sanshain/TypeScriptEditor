@@ -52,7 +52,7 @@ To find out how ace works and how it is assembled, I cloned the original ace rep
 
 - File `mode-typescript.js ` generated based on file `src/mode/typescript.js `. Thus `typescript.js ` initially responsible for syntax highlighting and the creation of the worker (it specifies the path to the script for the worker to work. it is important)
 
-- File `worker-typescript.js ` generated based on two files: lib/ace/worker/worker.js (it is the entry point if run in the original mode described at the beginning) and lib/ace/mode/typescript_worker.js (each of them is built separately during the build process, the first is built to iife, the second - to amd, then these two files will merge into one!).
+- File `worker-typescript.js ` generated based on two files: `lib/ace/worker/worker.js` (it is the entry point if run in the original mode described at the beginning) and `lib/ace/mode/typescript_worker.js` (each of them is built separately during the build process, the first is built to iife, the second - to amd, then these two files will merge into one!).
 
 Since the ace editor build process was not transparent from the very beginning, I created a rollup config, then it can be seen that synchronized the typescript_worker build with copying the above files to the ace repository nearby, building it and copying it back
 
