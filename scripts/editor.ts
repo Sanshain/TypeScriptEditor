@@ -335,14 +335,14 @@ export default function initialize(options: {selector?: string, entryFile?: stri
     editor.onTextInput = function (text) {
         originalTextInput.call(editor, text);        
 
-        // TODO: attempt autocomplete for all words (but something went wrong, adds extra characters)
-
-        // let pos = editor.getCursorPosition();
-        // let token = editor.session.getTokenAt(pos.row, pos.column);
-        // if (token && token.value.length > 1) {
-        //     editor.execCommand("autoComplete");
-        //     return
-        // }
+        let pos = editor.getCursorPosition();
+        let token = editor.session.getTokenAt(pos.row, pos.column);
+        
+        if (token && token.value.length > 1 && token.value.match(/\w[\w\d_\$]+/)) {            
+            
+            editor.execCommand("autoComplete");
+            return
+        }
 
         if(text == "."){
             editor.execCommand("autoComplete");

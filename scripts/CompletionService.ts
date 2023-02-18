@@ -17,10 +17,13 @@ export class CompletionService{
     };
 
     getCursorCompilation(script, cursor) {
+        
         var isMemberCompletion, matches, pos, text:string;
         pos = this.editorPos.getPositionChars(cursor);
-        text = this.editor.session.getLine(cursor.row).slice(0, cursor.column);
-        isMemberCompletion = false;
+        text = this.editor.session.getLine(cursor.row).slice(0, cursor.column);        
+        
+        isMemberCompletion = false;        
+        
         matches = text.match(/\.([a-zA-Z_0-9\$]*$)/);
 
         if (matches && matches.length > 0) {

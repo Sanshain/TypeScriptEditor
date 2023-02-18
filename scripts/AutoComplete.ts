@@ -36,9 +36,11 @@ export class AutoComplete {
         this._active = false;
         this.inputText =''; //TODO imporve name
         
-        
+        /**
+         * @description - on autocompletion start
+         */
         this.handler.attach = () => {
-            editor.addEventListener("change", this.refreshCompletions);
+            editor.addEventListener("change", this.refreshCompletions);            
             this._emit("attach", {sender: this});
             this._active = true;
         };
@@ -51,7 +53,11 @@ export class AutoComplete {
         };
         
         var self = this;
+        /**
+         * @description - on autocomplete Enter
+         */
         this.handler.handleKeyboard = function (data, hashId, key, keyCode) {
+            
             if (hashId == -1) {
     
                 if(" -=,[]_/()!';:<>".indexOf(key) != -1){ //TODO
@@ -107,16 +113,21 @@ export class AutoComplete {
             cancel:(editor)=>{
                 self.deactivate();
             },
-            insertComplete:(editor) => {
+            /**
+             * @description - on autocomplete Enter (after handleKeyboard)
+             * @param editor 
+             */
+            insertComplete: (editor) => {
+                
                 editor.removeEventListener("change", self.refreshCompletions);
                 var curr = self.view.current();
-    
+                
                 for(var i = 0; i<  self.inputText.length; i++){
                     editor.remove("left");
                 }
     
                 if(curr){
-                    editor.insert($(curr).data("name"));
+                    editor.insert(curr.getAttribute("data-name"));
                 }
                 self.deactivate();
     
@@ -133,7 +144,7 @@ export class AutoComplete {
         this.scriptName = name;
     };
 
-    show = () => {
+    show = () => {        
         this.listElement = this.view.listElement;
         this.editor.container.appendChild(this.view.wrap);
         this.listElement.innerHTML = '';
@@ -144,6 +155,7 @@ export class AutoComplete {
     }
 
     compilation = (cursor) => {
+        
         var compilationInfo = this.completionService.getCursorCompilation(this.scriptName, cursor);
         var text  = this.completionService.matchText;
         var coords = this.editor.renderer.textToScreenCoordinates(cursor.row, cursor.column - text.length);
@@ -152,10 +164,10 @@ export class AutoComplete {
         this.inputText = text;
 
         if (!compilationInfo) console.log('`compilationInfo` is undefined')
+        
+        var compilations = (compilationInfo || { entries: <ts.CompletionInfo['entries']>[]}).entries;
 
-        var compilations = (compilationInfo || { entries: []}).entries;
-
-        if (this.inputText.length > 0){
+        if (this.inputText.length > 0 && compilationInfo){
             compilations = compilationInfo.entries.filter((elm)=>{
                 return elm.name.toLowerCase().indexOf(this.inputText.toLowerCase()) == 0 ;
             });
@@ -182,6 +194,8 @@ export class AutoComplete {
         };
 
         compilations = compilations.sort(compare);
+        compilations = compilations.filter(k => !~k.name.indexOf('_'))
+        
 
         this.showCompilation(compilations);
 

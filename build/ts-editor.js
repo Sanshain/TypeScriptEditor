@@ -2549,7 +2549,7 @@ var typescriptEditorInitialize = (function () {
                 if (!compilationInfo)
                     console.log('`compilationInfo` is undefined');
                 var compilations = (compilationInfo || { entries: [] }).entries;
-                if (_this.inputText.length > 0) {
+                if (_this.inputText.length > 0 && compilationInfo) {
                     compilations = compilationInfo.entries.filter(function (elm) {
                         return elm.name.toLowerCase().indexOf(_this.inputText.toLowerCase()) == 0;
                     });
@@ -2573,6 +2573,7 @@ var typescriptEditorInitialize = (function () {
                     return (ret != 0) ? ret : textCompare(a, b);
                 };
                 compilations = compilations.sort(compare);
+                compilations = compilations.filter(function (k) { return !~k.name.indexOf('_'); });
                 _this.showCompilation(compilations);
                 return compilations.length;
             };
@@ -2690,7 +2691,7 @@ var typescriptEditorInitialize = (function () {
                         editor.remove("left");
                     }
                     if (curr) {
-                        editor.insert($(curr).data("name"));
+                        editor.insert(curr.getAttribute("data-name"));
                     }
                     self.deactivate();
                 }
@@ -3355,6 +3356,13 @@ var typescriptEditorInitialize = (function () {
         var originalTextInput = editor.onTextInput;
         editor.onTextInput = function (text) {
             originalTextInput.call(editor, text);
+            var pos = editor.getCursorPosition();
+            var token = editor.session.getTokenAt(pos.row, pos.column);
+            console.log(token);
+            if (token && token.value.length > 1 && token.value.match(/\w[\w\d_\$]+/)) {
+                editor.execCommand("autoComplete");
+                return;
+            }
             if (text == ".") {
                 editor.execCommand("autoComplete");
             }
