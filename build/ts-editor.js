@@ -2596,7 +2596,6 @@ var typescriptEditorInitialize = (function () {
                 if (infos.length > 0) {
                     _this.view.show();
                     var html = '';
-                    console.log(info);
                     for (var n in infos) {
                         var info = infos[n];
                         var name = '<span class="label-name">' + info.name + '</span>';
@@ -3322,7 +3321,7 @@ var typescriptEditorInitialize = (function () {
         }
         editor.addEventListener("change", onUpdateDocument);
         editor.addEventListener("changeSelection", onChangeCursor);
-        setTimeout(function () {
+        options.signatureToolTip && setTimeout(function () {
             var toolTip = null;
             editor.session.selection.on('changeCursor', function (e) {
                 if (toolTip) {
@@ -3339,13 +3338,11 @@ var typescriptEditorInitialize = (function () {
                 var token = editor.session.getTokenAt(pos.row, pos.column);
                 if (token && token.value == '(') {
                     var info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);
-                    console.log(info);
                     if (info && info.length) {
-                        if (['function', 'method'].indexOf(info[0].kind)) {
+                        if (~['function', 'method'].indexOf(info[0].kind)) {
                             var quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2);
                             if (quickInfo && Array.isArray(quickInfo.displayParts)) {
                                 var params = quickInfo.displayParts.filter(function (k) { return k.kind == 'parameterName'; }).map(function (k) { return k.text; });
-                                console.log(params);
                                 var textInputBound = editor['textInput'].getElement().getBoundingClientRect();
                                 toolTip = editor.container.appendChild(document.createElement('div'));
                                 toolTip.className = 'tooltip';

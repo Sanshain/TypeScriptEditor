@@ -224,9 +224,10 @@ export class AutoComplete {
             this.view.show();
             var html = '';
             // TODO use template
-            console.log(info);
+            // console.log(infos);            
             
-            for(var n in infos) {
+            for (var n in infos) {
+                
                 var info = infos[n];
                 var name =  '<span class="label-name">' + info.name + '</span>';
                 var type =  '<span class="label-type">' + info.kind + '</span>';

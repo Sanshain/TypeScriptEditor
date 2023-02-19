@@ -1705,7 +1705,7 @@ var TypeScriptWorker = (function () {
                     column: pos.column,
                     text: typeof error.messageText === 'string' ? error.messageText : (
                         typeof error.messageText == 'object' && Array.isArray(error.messageText.next) && error.messageText.next.length 
-                            ? error.messageText.next[0].messageText
+                            ? (error.messageText['messageText'] + '\n' + error.messageText.next[0].messageText)
                             : error.messageText['messageText'] 
                     ),
                     minChar: error.start,

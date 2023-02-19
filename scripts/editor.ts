@@ -342,11 +342,14 @@ export default function initialize(options: {selector?: string, entryFile?: stri
             let token = editor.session.getTokenAt(pos.row, pos.column)
             if (token && token.value == '(') {
                 // tooltip:
-                let info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);
+                let info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);                
+                
                 
                 if (info && info.length) {
-                    if (['function', 'method'].indexOf(info[0].kind)) {
+                    if (~['function', 'method'].indexOf(info[0].kind)) {
+
                         let quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2,)
+                        
                         if (quickInfo && Array.isArray(quickInfo.displayParts)) {
                             let params = quickInfo.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text) 
                                                         
@@ -355,7 +358,7 @@ export default function initialize(options: {selector?: string, entryFile?: stri
                             toolTip.className = 'tooltip';
                             toolTip.style.top = textInputBound.top + 2 + 'px';
                             toolTip.style.left = textInputBound.left + 10 + 'px';
-                            toolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')'
+                            toolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')'                            
                         }
                         
                     }   

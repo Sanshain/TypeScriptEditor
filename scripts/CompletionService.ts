@@ -1,14 +1,16 @@
 import {EditorPosition} from './EditorPosition';
-import {getTSProject} from "./lib/ace/mode/typescript/tsProject";
+import { getTSProject } from "./lib/ace/mode/typescript/tsProject";
 var tsProject = getTSProject();
 
 export class CompletionService{
 
     public editorPos: EditorPosition;
     public matchText: string;
+    // public $tsProject = tsProject;
 
     constructor(public editor){
         this.editorPos = new EditorPosition(editor);
+        // this.$tsProject = tsProject;
     }
 
     getCompilation(script, charpos, isMemberCompletion) {        
@@ -22,7 +24,7 @@ export class CompletionService{
         pos = this.editorPos.getPositionChars(cursor);
         text = this.editor.session.getLine(cursor.row).slice(0, cursor.column);        
         
-        isMemberCompletion = false;        
+        isMemberCompletion = false;
         
         matches = text.match(/\.([a-zA-Z_0-9\$]*$)/);
 
