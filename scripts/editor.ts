@@ -306,9 +306,20 @@ export default function initialize(options: {selector?: string, entryFile?: stri
 
     editor.addEventListener("change", onUpdateDocument);
     editor.addEventListener("changeSelection", onChangeCursor);
+
+
     setTimeout(() => {
+
+        let toolTip: HTMLElement = null;
+
         editor.session.selection.on('changeCursor', function (e) {
-            // 
+            
+            if (toolTip) {
+                if (toolTip.parentElement) toolTip.parentElement.removeChild(toolTip);
+                else if (toolTip.remove) {
+                    toolTip.remove()
+                }
+            }
             
             let pos = editor.getCursorPosition();
             let range = editor.session.getTextRange(new AceRange(0, 0, pos.row, pos.column));
@@ -325,9 +336,32 @@ export default function initialize(options: {selector?: string, entryFile?: stri
             
 
             // let log = tsProject.languageService.getTypeDefinitionAtPosition("samples/greeter.ts", flatPos)  // return {name: type} for variables only
-            let log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos,)  // r.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text)
-            console.log(log);
-
+            // let log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos,)  // r.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text)
+            // let log = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos,)    // return {kind: 'method'|'function'}
+            
+            let token = editor.session.getTokenAt(pos.row, pos.column)
+            if (token && token.value == '(') {
+                // tooltip:
+                let info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);
+                
+                if (info && info.length) {
+                    if (['function', 'method'].indexOf(info[0].kind)) {
+                        let quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2,)
+                        if (quickInfo && Array.isArray(quickInfo.displayParts)) {
+                            let params = quickInfo.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text) 
+                                                        
+                            const textInputBound: DOMRect = editor['textInput'].getElement().getBoundingClientRect()
+                            toolTip = editor.container.appendChild(document.createElement('div'));
+                            toolTip.className = 'tooltip';
+                            toolTip.style.top = textInputBound.top + 2 + 'px';
+                            toolTip.style.left = textInputBound.left + 10 + 'px';
+                            toolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')'
+                        }
+                        
+                    }   
+                }                
+                
+            }
         });
     }, 1500)
 
@@ -403,7 +437,6 @@ export default function initialize(options: {selector?: string, entryFile?: stri
         errorMarkers.forEach(function (id){
             session.removeMarker(id);
         });
-        console.log(e);
         
         e.data.forEach(function(error: { minChar: any; limChar: any; }){
             var getpos = aceEditorPosition.getAcePositionFromChars;

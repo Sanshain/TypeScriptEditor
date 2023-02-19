@@ -3323,13 +3323,39 @@ var typescriptEditorInitialize = (function () {
         editor.addEventListener("change", onUpdateDocument);
         editor.addEventListener("changeSelection", onChangeCursor);
         setTimeout(function () {
+            var toolTip = null;
             editor.session.selection.on('changeCursor', function (e) {
+                if (toolTip) {
+                    if (toolTip.parentElement)
+                        toolTip.parentElement.removeChild(toolTip);
+                    else if (toolTip.remove) {
+                        toolTip.remove();
+                    }
+                }
                 var pos = editor.getCursorPosition();
                 var range = editor.session.getTextRange(new Range_1(0, 0, pos.row, pos.column));
                 var arr = range.split('\n');
                 var flatPos = arr.length + arr.reduce(function (acc, line) { return acc + line.length; }, 0);
-                var log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos);
-                console.log(log);
+                var token = editor.session.getTokenAt(pos.row, pos.column);
+                if (token && token.value == '(') {
+                    var info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);
+                    console.log(info);
+                    if (info && info.length) {
+                        if (['function', 'method'].indexOf(info[0].kind)) {
+                            var quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2);
+                            if (quickInfo && Array.isArray(quickInfo.displayParts)) {
+                                var params = quickInfo.displayParts.filter(function (k) { return k.kind == 'parameterName'; }).map(function (k) { return k.text; });
+                                console.log(params);
+                                var textInputBound = editor['textInput'].getElement().getBoundingClientRect();
+                                toolTip = editor.container.appendChild(document.createElement('div'));
+                                toolTip.className = 'tooltip';
+                                toolTip.style.top = textInputBound.top + 2 + 'px';
+                                toolTip.style.left = textInputBound.left + 10 + 'px';
+                                toolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')';
+                            }
+                        }
+                    }
+                }
             });
         }, 1500);
         editor.commands.addCommands([{
@@ -3388,7 +3414,6 @@ var typescriptEditorInitialize = (function () {
             errorMarkers.forEach(function (id) {
                 session.removeMarker(id);
             });
-            console.log(e);
             e.data.forEach(function (error) {
                 var getpos = aceEditorPosition.getAcePositionFromChars;
                 var start = getpos(error.minChar);
