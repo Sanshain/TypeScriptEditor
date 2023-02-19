@@ -137,7 +137,11 @@ export class TypeScriptWorker {
             annotations.push({
                 row: pos.row,
                 column: pos.column,
-                text: error.messageText,
+                text: typeof error.messageText === 'string' ? error.messageText : (
+                    typeof error.messageText == 'object' && Array.isArray(error.messageText.next) && error.messageText.next.length
+                        ? error.messageText.next[0].messageText
+                        : error.messageText['messageText']
+                ),
                 minChar:error.start,
                 limChar:error.start + error.length,
                 type: "error",

@@ -2596,6 +2596,7 @@ var typescriptEditorInitialize = (function () {
                 if (infos.length > 0) {
                     _this.view.show();
                     var html = '';
+                    console.log(info);
                     for (var n in infos) {
                         var info = infos[n];
                         var name = '<span class="label-name">' + info.name + '</span>';
@@ -3327,7 +3328,6 @@ var typescriptEditorInitialize = (function () {
                 var range = editor.session.getTextRange(new Range_1(0, 0, pos.row, pos.column));
                 var arr = range.split('\n');
                 var flatPos = arr.length + arr.reduce(function (acc, line) { return acc + line.length; }, 0);
-                console.log(flatPos);
                 var log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos);
                 console.log(log);
             });
@@ -3388,6 +3388,7 @@ var typescriptEditorInitialize = (function () {
             errorMarkers.forEach(function (id) {
                 session.removeMarker(id);
             });
+            console.log(e);
             e.data.forEach(function (error) {
                 var getpos = aceEditorPosition.getAcePositionFromChars;
                 var start = getpos(error.minChar);

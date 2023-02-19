@@ -309,19 +309,18 @@ export default function initialize(options: {selector?: string, entryFile?: stri
     setTimeout(() => {
         editor.session.selection.on('changeCursor', function (e) {
             // 
-            debugger;
+            
             let pos = editor.getCursorPosition();
             let range = editor.session.getTextRange(new AceRange(0, 0, pos.row, pos.column));
             let arr = range.split('\n')
             let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0)
-            console.log(flatPos);
+            
             
             // const dummyScriptName = "samples/greeter.ts"
-            // // var program = ts.createProgram([dummyScriptName], tsProject.languageServiceHost.getCompilationSettings(), tsProject.languageServiceHost)
             // let program = tsProject.languageService.getProgram()
             // var typeChecker = program.getTypeChecker();
             // var sf = program.getSourceFile(dummyScriptName);
-            // let decl = sf.getNamedDeclarations(flatPos)
+            // let decl = sf.getNamedDeclarations(flatPos)  // is absent
             // console.log(decl);
             
 
