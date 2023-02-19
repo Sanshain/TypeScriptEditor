@@ -275,7 +275,7 @@ function workerOnCreate(func, timeout){
 }
 
 
-export default function initialize(options: {selector?: string, entryFile?: string, content?: string}) {
+export default function initialize(options: {selector?: string, entryFile?: string, content?: string, signatureToolTip?: boolean}) {
     
     options = options || {}
     const selector = options.selector || "editor";
@@ -308,7 +308,7 @@ export default function initialize(options: {selector?: string, entryFile?: stri
     editor.addEventListener("changeSelection", onChangeCursor);
 
 
-    setTimeout(() => {
+    options.signatureToolTip && setTimeout(() => {
 
         let toolTip: HTMLElement = null;
 
