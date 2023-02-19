@@ -164,7 +164,7 @@ export class AutoComplete {
         this.inputText = text;
 
         if (!compilationInfo) console.log('`compilationInfo` is undefined')
-        
+                
         var compilations = (compilationInfo || { entries: <ts.CompletionInfo['entries']>[]}).entries;
 
         if (this.inputText.length > 0 && compilationInfo){
@@ -195,7 +195,7 @@ export class AutoComplete {
 
         compilations = compilations.sort(compare);
         compilations = compilations.filter(k => !~k.name.indexOf('_'))
-        
+        // console.log(compilations.filter(k => k.source || k.sourceDisplay));           
 
         this.showCompilation(compilations);
 
@@ -224,6 +224,8 @@ export class AutoComplete {
             this.view.show();
             var html = '';
             // TODO use template
+            console.log(info);
+            
             for(var n in infos) {
                 var info = infos[n];
                 var name =  '<span class="label-name">' + info.name + '</span>';

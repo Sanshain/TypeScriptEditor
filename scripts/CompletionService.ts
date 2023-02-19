@@ -11,8 +11,8 @@ export class CompletionService{
         this.editorPos = new EditorPosition(editor);
     }
 
-    getCompilation (script, charpos, isMemberCompletion) {
-        var compInfo = tsProject.languageService.getCompletionsAtPosition(script, charpos);
+    getCompilation(script, charpos, isMemberCompletion) {        
+        var compInfo = tsProject.languageService.getCompletionsAtPosition(script, charpos, {});
         return compInfo;
     };
 

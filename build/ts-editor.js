@@ -2859,13 +2859,6 @@ var typescriptEditorInitialize = (function () {
             }
             return '0';
         }
-        function getScriptIsOpen(fileName) {
-            var script = fileNameToScript[fileName];
-            if (script) {
-                return script.getIsOpen();
-            }
-            return false;
-        }
         function getScriptSnapshot(fileName) {
             var script = fileNameToScript[fileName];
             if (script) {
@@ -2891,7 +2884,6 @@ var typescriptEditorInitialize = (function () {
             getCurrentDirectory: function () { return currentDir; },
             getDefaultLibFileName: function () { return defaultLibFileName; },
             getScriptVersion: getScriptVersion,
-            getScriptIsOpen: getScriptIsOpen,
             getScriptSnapshot: getScriptSnapshot,
         };
     }
@@ -2929,7 +2921,7 @@ var typescriptEditorInitialize = (function () {
             scriptVersion++;
         }
         function getScriptSnapshot() {
-            var lineStarts = getLineStarts();
+            getLineStarts();
             var textSnapshot = content;
             var version = scriptVersion;
             editRanges.slice();
@@ -2975,8 +2967,6 @@ var typescriptEditorInitialize = (function () {
                 getText: function (start, end) { return textSnapshot.substring(start, end); },
                 getLength: function () { return textSnapshot.length; },
                 getChangeRange: getChangeRange,
-                getLineStartPositions: function () { return lineStarts; },
-                version: version
             };
         }
         return {
@@ -2984,8 +2974,6 @@ var typescriptEditorInitialize = (function () {
             getVersion: function () { return scriptVersion; },
             getIsOpen: function () { return isOpen; },
             setIsOpen: function (val) { return isOpen = val; },
-            getEditRanges: function () { return editRanges; },
-            getLineStarts: getLineStarts,
             getScriptSnapshot: getScriptSnapshot,
             updateContent: updateContent,
             editContent: editContent
@@ -3014,7 +3002,7 @@ var typescriptEditorInitialize = (function () {
             this.editorPos = new EditorPosition(editor);
         }
         CompletionService.prototype.getCompilation = function (script, charpos, isMemberCompletion) {
-            var compInfo = tsProject$1.languageService.getCompletionsAtPosition(script, charpos);
+            var compInfo = tsProject$1.languageService.getCompletionsAtPosition(script, charpos, {});
             return compInfo;
         };
         CompletionService.prototype.getCursorCompilation = function (script, cursor) {
@@ -3119,6 +3107,9 @@ var typescriptEditorInitialize = (function () {
             InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: false,
             PlaceOpenBraceOnNewLineForFunctions: false,
             PlaceOpenBraceOnNewLineForControlBlocks: false,
+            IndentStyle: 0,
+            InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false,
+            InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: false
         };
     }
     var ace = window.ace;
@@ -3330,6 +3321,17 @@ var typescriptEditorInitialize = (function () {
         }
         editor.addEventListener("change", onUpdateDocument);
         editor.addEventListener("changeSelection", onChangeCursor);
+        setTimeout(function () {
+            editor.session.selection.on('changeCursor', function (e) {
+                var pos = editor.getCursorPosition();
+                var range = editor.session.getTextRange(new Range_1(0, 0, pos.row, pos.column));
+                var arr = range.split('\n');
+                var flatPos = arr.length + arr.reduce(function (acc, line) { return acc + line.length; }, 0);
+                console.log(flatPos);
+                var log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos);
+                console.log(log);
+            });
+        }, 1500);
         editor.commands.addCommands([{
                 name: "autoComplete",
                 bindKey: "Ctrl-Space",
@@ -3358,7 +3360,6 @@ var typescriptEditorInitialize = (function () {
             originalTextInput.call(editor, text);
             var pos = editor.getCursorPosition();
             var token = editor.session.getTokenAt(pos.row, pos.column);
-            console.log(token);
             if (token && token.value.length > 1 && token.value.match(/\w[\w\d_\$]+/)) {
                 editor.execCommand("autoComplete");
                 return;

@@ -93,6 +93,10 @@ export interface LanguageServiceHost extends ts.LanguageServiceHost {
      */
     getScriptContent(fileName: string): string;
 
+
+    // getCanonicalFileName(fileName: string): string;
+    // getSourceFile(filename: string, languageVersion: ts.ScriptTarget, onError?: (message: string) => void): ts.SourceFile;
+
 }
 
 //--------------------------------------------------------------------------
@@ -264,7 +268,18 @@ export function createLanguageServiceHost(currentDir: string, defaultLibFileName
             return script.getScriptSnapshot();
         }
         return null;
-    }
+    }  
+
+
+    // https://blog.scottlogic.com/2015/01/20/typescript-compiler-api.html
+    function getCanonicalFileName(fileName: string) { return fileName };
+    function getSourceFile(filename: string, languageVersion: ts.ScriptTarget, onError?: (message: string) => void): ts.SourceFile {
+        var f = fileNameToScript[filename]; // this.files[filename];
+        if (!f) return null;
+        // last arg: 1 - js, 3 - ts
+        var sourceFile = ts.createLanguageServiceSourceFile(filename, f.file, ts.ScriptTarget.ES5, f.ver.toString(), true, 3);
+        return sourceFile;
+    }  
 
     return {
         //ts.Logger implementation
@@ -289,8 +304,11 @@ export function createLanguageServiceHost(currentDir: string, defaultLibFileName
         getCurrentDirectory: () => currentDir,
         getDefaultLibFileName: () => defaultLibFileName,
         getScriptVersion,
-        getScriptIsOpen,
+        // getScriptIsOpen,
         getScriptSnapshot,
+
+        // getCanonicalFileName,
+        // getSourceFile,
     };
 }
 
@@ -494,8 +512,8 @@ function createScriptInfo(content: string): ScriptInfo {
             getText: (start, end) => textSnapshot.substring(start, end),
             getLength: () => textSnapshot.length,
             getChangeRange,
-            getLineStartPositions: () => lineStarts,
-            version: version
+            // getLineStartPositions: () => lineStarts,
+            // version: version
         }
     }
 
@@ -504,8 +522,8 @@ function createScriptInfo(content: string): ScriptInfo {
         getVersion: () => scriptVersion,
         getIsOpen: () => isOpen,
         setIsOpen: val => isOpen = val,
-        getEditRanges: () => editRanges,
-        getLineStarts,
+        // getEditRanges: () => editRanges,
+        // getLineStarts,
         getScriptSnapshot,
 
         updateContent,

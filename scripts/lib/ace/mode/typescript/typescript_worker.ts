@@ -105,7 +105,7 @@ export class TypeScriptWorker {
     };
     
     getCompletionsAtPosition = (fileName, pos, isMemberCompletion, id) => {
-        var ret = tsProject.languageService.getCompletionsAtPosition(fileName, pos);
+        var ret = tsProject.languageService.getCompletionsAtPosition(fileName, pos, {});
         this.sender.callback(ret, id);
     };
     
@@ -133,6 +133,7 @@ export class TypeScriptWorker {
         var annotations = [];
         allDiagnostics.forEach((error)=>{
             var pos = DocumentPositionUtil.getPosition(this.doc, error.start);
+            
             annotations.push({
                 row: pos.row,
                 column: pos.column,
