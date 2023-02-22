@@ -360,7 +360,6 @@ export default function initialize(options: {selector?: string, entryFile?: stri
                             toolTip.style.left = textInputBound.left + 10 + 'px';
                             toolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')'                            
                         }
-                        
                     }   
                 }                
                 
