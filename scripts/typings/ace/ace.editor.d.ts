@@ -14,9 +14,9 @@ declare module AceAjax {
 
     export interface EditorCommand {
 
-        name:string;
+        name: string;
 
-        bindKey:any;
+        bindKey: any;
 
         exec:Function;
     }

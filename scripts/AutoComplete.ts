@@ -219,6 +219,8 @@ export class AutoComplete {
     };
 
     showCompilation = (infos: ts.CompletionEntry[]) => {
+        console.log(infos);
+        
         if (infos.length > 0) {
             
             this.view.show();

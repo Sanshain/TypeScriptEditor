@@ -35,6 +35,8 @@ import {DocumentPositionUtil} from "./DocumentPositionUtil";
 // import { Mirror } from "ace/worker/mirror";
 // import { Document } from "ace/document";
 
+////-@ts-expect-error - for ts 4.9.4. no errors - for ts 4.3.2!
+
 import oop from "../../lib/oop.js";
 import lang from "../../lib/lang.js";
 import { Mirror } from "../../worker/mirror.js";
@@ -53,7 +55,7 @@ function setupInheritanceCall(sender) {
     var _self = this;
     sender.on("change", function(e) {
         var data = e.data;
-        if (data[0].start) {
+        if (data[0].start) {            
             doc.applyDeltas(data);
         } else {
             for (var i = 0; i < data.length; i += 2) {

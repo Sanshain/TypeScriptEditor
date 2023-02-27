@@ -2143,13 +2143,6 @@ function createLanguageServiceHost(currentDir, defaultLibFileName) {
         }
         return '0';
     }
-    function getScriptIsOpen(fileName) {
-        var script = fileNameToScript[fileName];
-        if (script) {
-            return script.getIsOpen();
-        }
-        return false;
-    }
     function getScriptSnapshot(fileName) {
         var script = fileNameToScript[fileName];
         if (script) {
@@ -2175,7 +2168,6 @@ function createLanguageServiceHost(currentDir, defaultLibFileName) {
         getCurrentDirectory: function () { return currentDir; },
         getDefaultLibFileName: function () { return defaultLibFileName; },
         getScriptVersion: getScriptVersion,
-        getScriptIsOpen: getScriptIsOpen,
         getScriptSnapshot: getScriptSnapshot,
     };
 }
@@ -2213,7 +2205,7 @@ function createScriptInfo(content) {
         scriptVersion++;
     }
     function getScriptSnapshot() {
-        var lineStarts = getLineStarts();
+        getLineStarts();
         var textSnapshot = content;
         var version = scriptVersion;
         editRanges.slice();
@@ -2259,8 +2251,6 @@ function createScriptInfo(content) {
             getText: function (start, end) { return textSnapshot.substring(start, end); },
             getLength: function () { return textSnapshot.length; },
             getChangeRange: getChangeRange,
-            getLineStartPositions: function () { return lineStarts; },
-            version: version
         };
     }
     return {
@@ -2268,8 +2258,6 @@ function createScriptInfo(content) {
         getVersion: function () { return scriptVersion; },
         getIsOpen: function () { return isOpen; },
         setIsOpen: function (val) { return isOpen = val; },
-        getEditRanges: function () { return editRanges; },
-        getLineStarts: getLineStarts,
         getScriptSnapshot: getScriptSnapshot,
         updateContent: updateContent,
         editContent: editContent
@@ -2339,7 +2327,7 @@ var TypeScriptWorker = (function () {
             tsProject.languageServiceHost.addScript(name, content);
         };
         this.getCompletionsAtPosition = function (fileName, pos, isMemberCompletion, id) {
-            var ret = tsProject.languageService.getCompletionsAtPosition(fileName, pos);
+            var ret = tsProject.languageService.getCompletionsAtPosition(fileName, pos, {});
             _this.sender.callback(ret, id);
         };
         this.onUpdate = function () {
@@ -2363,7 +2351,9 @@ var TypeScriptWorker = (function () {
                 annotations.push({
                     row: pos.row,
                     column: pos.column,
-                    text: error.messageText,
+                    text: typeof error.messageText === 'string' ? error.messageText : (typeof error.messageText == 'object' && Array.isArray(error.messageText.next) && error.messageText.next.length
+                        ? (error.messageText['messageText'] + '\n' + error.messageText.next[0].messageText)
+                        : error.messageText['messageText']),
                     minChar: error.start,
                     limChar: error.start + error.length,
                     type: "error",

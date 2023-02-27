@@ -9,6 +9,14 @@ import {CompletionService} from './CompletionService';
 import { deferredCall } from "./lib/ace/lib/lang";
 
 
+type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { editor?: undefined, selector?: string }) & {
+    entryFile?: string,
+    content?: string,
+    signatureToolTip?: boolean,
+    fontSize?: string
+}
+
+
 function defaultFormatCodeOptions(): ts.FormatCodeOptions {
     return {
         IndentSize: 4,
@@ -34,6 +42,12 @@ function defaultFormatCodeOptions(): ts.FormatCodeOptions {
 const ace = window.ace;
 
 var aceEditorPosition = null;
+
+let signatureToolTip: HTMLElement = null;
+let originalTextInput: (s: string) => void = null;
+let closuredEvents: { [k in 'compileErrors' | 'mousedown']?: Function } = {};
+
+
 var editor:AceAjax.Editor = null;
 var docUpdateCount = 0;
 
@@ -47,17 +61,32 @@ var errorMarkers =[];
 
 // Start updating latest
 import {getTSProject} from "./lib/ace/mode/typescript/tsProject";
+import { extend } from './lib/ace/mode/coffee/nodes';
 var tsProject = getTSProject();
 
-function loadLibFiles(){    
+/**
+ * @description load initial lib files to languageServiceHost if not exists and to worker (w/o checking on exists) on first loading
+ */
+function loadLibFiles(){
 
-    var libFiles = ["typescripts/lib.d.ts"];
+    var libFiles = [
+        // "typescripts/lib.d.ts",
+        "/typescripts/4.9.5/lib.dom.d.ts",
+        "/typescripts/4.9.5/lib.es5.d.ts",
+        // "/typescripts/4.9.5/lib.es2015.iterable.d.ts",      // Map, Set, WeakMap
+        "/typescripts/4.9.5/lib.dom.iterable.d.ts",         // FormData (+ Symbol as Iterator, some WebGL2context types)
+        // "/typescripts/4.9.5/lib.es2015.promise.d.ts",       // Promise.reject, Promise.resolve
+        // "/typescripts/4.9.5/lib.es2015.proxy.d.ts",
+        // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
+    ];
     
     // Load files here 
-    libFiles.forEach(function(libname){
-        readFile(libname, function(content){
-            tsProject.languageServiceHost.addScript(libname, content);
-        });
+    libFiles.forEach(function (libname) {
+        if (tsProject.languageServiceHost.hasScript(libname) === false) {
+            readFile(libname, function (content) {
+                tsProject.languageServiceHost.addScript(libname, content);
+            });   
+        }
     });
 
     // Load files in the worker
@@ -275,131 +304,122 @@ function workerOnCreate(func, timeout){
 }
 
 
-export default function initialize(options: {selector?: string, entryFile?: string, content?: string, signatureToolTip?: boolean}) {
+/**
+ * 
+ * @param editor 
+ * @param {{
+ *  content?: string,                       // file content
+ *  entryFile?: string                      // entry file name
+ * }} options 
+ */
+export function asMode(editor: AceAjax.Editor, options: { content?: string, entryFile?: string}){
+    options = options || {}
+    const selector = editor.container;
+    editor.session.setMode('ace/mode/typescript');
+
+    // document.getElementById(selector).style.fontSize = '14px';
+
+    loadLibFiles();
+    if (options.content) {
+        loadContent(options.entryFile || 'app.ts', options.content)
+    }    
+
+    editor.addEventListener("change", onUpdateDocument);
+    editor.addEventListener("changeSelection", onChangeCursor);
+}
+
+
+
+export function dropMode(editor: AceAjax.Editor) {
+
+    editor.removeEventListener("change", onUpdateDocument);
+    editor.removeEventListener("changeSelection", onChangeCursor);
+
+    editor.session.selection.off('changeCursor', addHinter);
+    
+    ['autoComplete', 'refactor', 'indent'].forEach(w => editor.commands.removeCommand(w, true));
+
+    editor.onTextInput = originalTextInput;
+
+    // Object.entries(closuredEvents).forEach(([k, ev]) => editor.removeEventListener(k, ev))
+    
+    editor.removeEventListener('mousedown', closuredEvents['mousedown'])
+    //@ts-expect-error // TODO update Ace types
+    editor.session.off('compileErrors', closuredEvents['compileErrors'])
+
+    return editor;
+}
+
+
+export function initialize(options: InitialOptions) {
     
     options = options || {}
-    const selector = options.selector || "editor";
-
-
-    editor = ace.edit(selector);
-    editor.setTheme("ace/theme/monokai");    
-    editor.getSession().setMode('ace/mode/typescript');
-    // editor.getSession().setMode('ace/mode/javascript');    
+    const selector = options.selector || "editor";    
     
-        
+    editor = options.editor || ace.edit(selector);    
+    if (!options.editor) editor.setTheme("ace/theme/monokai");    
+    editor.getSession().setMode('ace/mode/typescript');       
+    console.log(123);
+    
+    
     // var outputEditor: AceAjax.Editor = ace.edit("output");
     // outputEditor.setTheme("ace/theme/monokai");
     // outputEditor.getSession().setMode('ace/mode/javascript');
 
-    document.getElementById(selector).style.fontSize='14px';
-    // document.getElementById('output').style.fontSize='14px';
+    if (selector) document.getElementById(selector).style.fontSize = options.fontSize || '14px';
 
     loadLibFiles();
     if (options.content) {
         loadContent(options.entryFile || 'app.ts', options.content)
     }
+    // if DEBUG
     else {        
         // if (options.contentFile)
         loadFile(options.entryFile || "samples/greeter.ts");
     }
+    // endif
     
 
     editor.addEventListener("change", onUpdateDocument);
-    editor.addEventListener("changeSelection", onChangeCursor);
+    editor.addEventListener("changeSelection", onChangeCursor);    
+    
+    if (options.signatureToolTip) {        
+        editor.session.selection.on('changeCursor', addHinter);
+    }
 
-
-    options.signatureToolTip && setTimeout(() => {
-
-        let toolTip: HTMLElement = null;
-
-        editor.session.selection.on('changeCursor', function (e) {
-            
-            if (toolTip) {
-                if (toolTip.parentElement) toolTip.parentElement.removeChild(toolTip);
-                else if (toolTip.remove) {
-                    toolTip.remove()
-                }
+    editor.commands.addCommands([
+        {
+            name:"autoComplete",
+            bindKey:"Ctrl-Space",
+            exec:function(editor) {
+                startAutoComplete(editor);
             }
-            
-            let pos = editor.getCursorPosition();
-            let range = editor.session.getTextRange(new AceRange(0, 0, pos.row, pos.column));
-            let arr = range.split('\n')
-            let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0)
-            
-            
-            // const dummyScriptName = "samples/greeter.ts"
-            // let program = tsProject.languageService.getProgram()
-            // var typeChecker = program.getTypeChecker();
-            // var sf = program.getSourceFile(dummyScriptName);
-            // let decl = sf.getNamedDeclarations(flatPos)  // is absent
-            // console.log(decl);
-            
-
-            // let log = tsProject.languageService.getTypeDefinitionAtPosition("samples/greeter.ts", flatPos)  // return {name: type} for variables only
-            // let log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos,)  // r.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text)
-            // let log = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos,)    // return {kind: 'method'|'function'}
-            
-            let token = editor.session.getTokenAt(pos.row, pos.column)
-            if (token && token.value == '(') {
-                // tooltip:
-                let info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);                
-                
-                
-                if (info && info.length) {
-                    if (~['function', 'method'].indexOf(info[0].kind)) {
-
-                        let quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2,)
-                        
-                        if (quickInfo && Array.isArray(quickInfo.displayParts)) {
-                            let params = quickInfo.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text) 
-                                                        
-                            const textInputBound: DOMRect = editor['textInput'].getElement().getBoundingClientRect()
-                            toolTip = editor.container.appendChild(document.createElement('div'));
-                            toolTip.className = 'tooltip';
-                            toolTip.style.top = textInputBound.top + 2 + 'px';
-                            toolTip.style.left = textInputBound.left + 10 + 'px';
-                            toolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')'                            
-                        }
-                    }   
-                }                
-                
-            }
-        });
-    }, 1500)
-
-
-    editor.commands.addCommands([{
-        name:"autoComplete",
-        bindKey:"Ctrl-Space",
-        exec:function(editor) {
-            startAutoComplete(editor);
-        }
-    }]);
-
-    editor.commands.addCommands([{
-        name:"refactor",
-        bindKey: "F2",
-        exec:function(editor) {
-            refactor();
-        }
-    }]);
-
-    editor.commands.addCommands([{
-        name: "indent",
-        bindKey: "Tab",
-        exec: function(editor) {
-            languageServiceIndent();
         },
-        // multiSelectAction: "forEach"
-    }]);
+        {
+            name: "refactor",
+            bindKey: "F2",
+            exec: function (editor) {
+                refactor();
+            }
+        },
+        {
+            name: "indent",
+            bindKey: "Tab",
+            exec: function (editor) {
+                languageServiceIndent();
+            },
+            // multiSelectAction: "forEach"
+        }        
+    ]);
 
     aceEditorPosition = new EditorPosition(editor);
     autoComplete = new AutoComplete(editor, selectFileName, new CompletionService(editor));
 
     // override editor onTextInput
-    var originalTextInput = editor.onTextInput;
+    originalTextInput = editor.onTextInput;
+    
     editor.onTextInput = function (text) {
-        originalTextInput.call(editor, text);        
+        originalTextInput.call(editor, text);  
 
         let pos = editor.getCursorPosition();
         let token = editor.session.getTokenAt(pos.row, pos.column);
@@ -424,7 +444,8 @@ export default function initialize(options: {selector?: string, entryFile?: stri
         }
     };
 
-    editor.addEventListener("mousedown", function(e){
+    editor.addEventListener("mousedown", closuredEvents["mousedown"] = function (e) {
+        
         if(autoComplete.isActive()){
             autoComplete.deactivate();
         }
@@ -434,7 +455,7 @@ export default function initialize(options: {selector?: string, entryFile?: stri
         // outputEditor.getSession().doc.setValue(e.data);
     });
 
-    editor.getSession().on("compileErrors", function (e) {        
+    editor.getSession().on("compileErrors", closuredEvents["compileErrors"] = function (e) {
         var session = editor.getSession();
         errorMarkers.forEach(function (id){
             session.removeMarker(id);
@@ -449,14 +470,76 @@ export default function initialize(options: {selector?: string, entryFile?: stri
         });
     });    
     
-
-    // $("#javascript-run").click(function(e){
-    //     javascriptRun(outputEditor.getSession().doc.getValue());
-    // });
-
-    // $("#select-sample").change(function(e){
-    //     var path = "samples/" + $(this).val();
-    //     loadFile(path);
-    // });
-
 }
+
+
+
+
+
+function addHinter(e: Event) {
+
+    if (signatureToolTip) {
+        if (signatureToolTip.parentElement)
+            signatureToolTip.parentElement.removeChild(signatureToolTip);
+        else if (signatureToolTip.remove) {
+            signatureToolTip.remove();
+        }
+    }
+
+    let pos = editor.getCursorPosition();
+    let range = editor.session.getTextRange(new AceRange(0, 0, pos.row, pos.column));
+    let arr = range.split('\n');
+    let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0);
+
+    /// RESEARCH lines:
+
+    // const dummyScriptName = "samples/greeter.ts"
+    // let program = tsProject.languageService.getProgram()
+    // var typeChecker = program.getTypeChecker();
+    // var sf = program.getSourceFile(dummyScriptName);
+    // let decl = sf.getNamedDeclarations(flatPos)  // is absent
+    // console.log(decl);
+    // let log = tsProject.languageService.getTypeDefinitionAtPosition("samples/greeter.ts", flatPos)  // return {name: type} for variables only
+    // let log = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos,)  // r.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text)
+    // let log = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos,)    // return {kind: 'method'|'function'}
+
+
+    let token = editor.session.getTokenAt(pos.row, pos.column);
+
+    if (token && token.value == '(') {
+        // tooltip:
+        let info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);
+
+
+        if (info && info.length) {
+            if (~['function', 'method'].indexOf(info[0].kind)) {
+
+                let quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2);
+
+                if (quickInfo && Array.isArray(quickInfo.displayParts)) {
+                    let params = quickInfo.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text);
+
+                    const textInputBound: DOMRect = editor['textInput'].getElement().getBoundingClientRect();
+                    signatureToolTip = editor.container.appendChild(document.createElement('div'));
+                    signatureToolTip.className = 'tooltip';
+                    signatureToolTip.style.top = textInputBound.top + 2 + 'px';
+                    signatureToolTip.style.left = textInputBound.left + 10 + 'px';
+                    signatureToolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')';
+                }
+            }
+        }
+
+    }
+}
+
+
+/**
+ * @description adds listener to changeCursor, which one expect function expression begin when user writting
+ */
+function signatureHinterEnable() {
+
+    editor.session.selection.on('changeCursor', addHinter);
+
+    return addHinter;
+}
+

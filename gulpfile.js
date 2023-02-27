@@ -27,6 +27,17 @@ import config from "./rollup.config.js";
 // console.log(config);
 // console.log(insert);
 
+
+console.warn('The gulp start is deprecated now');
+console.warn('The gulp start is deprecated now');
+console.warn('The gulp start is deprecated now');
+console.warn('The gulp start is deprecated now');
+console.warn('The gulp start is deprecated now');
+console.warn('The gulp start is deprecated now');
+
+
+
+
 gulp.task('prepare', function (done) {
     gulp.src('./js/typescriptServices.js')
         .pipe(uglify())
@@ -46,9 +57,9 @@ gulp.task('build', function (done) {
             // console.log(file);
             contents = contents.replace('define(function(require, exports, module) {', '');            
             contents = contents.replace('});', function (match, group, index, content) {
-                console.log(match);
-                console.log(index);
-                console.log(group);
+                // console.log(match);
+                // console.log(index);
+                // console.log(group);
                 return ''
             });
             return contents
@@ -57,7 +68,8 @@ gulp.task('build', function (done) {
         })
         .pipe(rollup({
             // any option supported by Rollup can be set here.
-            ...config,
+            //?
+            ...config[1],
             // allowRealFiles: true,
         })).on('error', function () {
             console.log(arguments);

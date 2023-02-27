@@ -25,7 +25,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch gulp build",
             "skipFiles": [
                 "<node_internals>/**"
             ],

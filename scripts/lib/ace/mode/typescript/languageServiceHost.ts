@@ -121,7 +121,7 @@ export function createLanguageServiceHost(currentDir: string, defaultLibFileName
     /**
      * A map associating absolute file name to ScriptInfo.
      */
-    var fileNameToScript: ts.Map<ScriptInfo> = Object.create(null);
+    var fileNameToScript: Record<string, ScriptInfo> = Object.create(null);
 
     /**
      * Add a script to the LanguageServiceHost.
@@ -322,6 +322,10 @@ export function createLanguageServiceHost(currentDir: string, defaultLibFileName
  * Internal Script representation.
  */
 interface ScriptInfo {
+
+    file?: any,
+    ver?: any
+
     /**
      * Returns the content of the file associated to the script.
      */
