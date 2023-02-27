@@ -13,7 +13,8 @@ type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { edi
     entryFile?: string,
     content?: string,
     signatureToolTip?: boolean,
-    fontSize?: string
+    fontSize?: string,
+    libFiles?: string[]
 }
 
 
@@ -67,9 +68,9 @@ var tsProject = getTSProject();
 /**
  * @description load initial lib files to languageServiceHost if not exists and to worker (w/o checking on exists) on first loading
  */
-function loadLibFiles(){
+function loadLibFiles(libFiles?: string[]): ts.LanguageServiceHost {
 
-    var libFiles = [
+    var libFiles = libFiles || [
         // "typescripts/lib.d.ts",
         "/typescripts/4.9.5/lib.dom.d.ts",
         "/typescripts/4.9.5/lib.es5.d.ts",
@@ -103,6 +104,8 @@ function loadLibFiles(){
             });
         });
     }, 100);
+
+    return tsProject.languageServiceHost
 }
 
 function loadFile(filename: string) {
@@ -111,12 +114,20 @@ function loadFile(filename: string) {
     });
 }
 
-function loadContent(filename: string, content: string) {
+/**
+ * 
+ * @param filename 
+ * @param content - content for type checking
+ * @param keepExistContent - flag to keep editor content if exists inside origin Ace 
+ */
+function loadContent(filename: string, content: string, keepExistContent?: boolean) {
     selectFileName = filename;
-    syncStop = true;
-    var data = content.replace(/\r\n?/g, "\n");
-    editor.setValue(data);
-    editor.moveCursorTo(0, 0);
+    syncStop = true;    
+    if (!keepExistContent) {
+        var data = content.replace(/\r\n?/g, "\n");
+        editor.setValue(data);
+        editor.moveCursorTo(0, 0);
+    }
     tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
     syncStop = false;
 }
@@ -304,38 +315,42 @@ function workerOnCreate(func, timeout){
 }
 
 
+// /**
+//  *
+//  * @param editor
+//  * @param {{
+//  *  content?: string,                       // file content
+//  *  entryFile?: string                      // entry file name
+//  * }} options
+//  */
+// export function asMode(editor: AceAjax.Editor, options: { content?: string, entryFile?: string}){
+//     options = options || {}
+//     const selector = editor.container;
+//     editor.session.setMode('ace/mode/typescript');
+
+//     // document.getElementById(selector).style.fontSize = '14px';
+
+//     loadLibFiles();
+//     if (options.content) {
+//         loadContent(options.entryFile || 'app.ts', options.content)
+//     }
+
+//     editor.addEventListener("change", onUpdateDocument);
+//     editor.addEventListener("changeSelection", onChangeCursor);
+// }
+
+
 /**
- * 
+ * @description Remove all ts-specific listeners
  * @param editor 
- * @param {{
- *  content?: string,                       // file content
- *  entryFile?: string                      // entry file name
- * }} options 
+ * @returns 
  */
-export function asMode(editor: AceAjax.Editor, options: { content?: string, entryFile?: string}){
-    options = options || {}
-    const selector = editor.container;
-    editor.session.setMode('ace/mode/typescript');
-
-    // document.getElementById(selector).style.fontSize = '14px';
-
-    loadLibFiles();
-    if (options.content) {
-        loadContent(options.entryFile || 'app.ts', options.content)
-    }    
-
-    editor.addEventListener("change", onUpdateDocument);
-    editor.addEventListener("changeSelection", onChangeCursor);
-}
-
-
-
 export function dropMode(editor: AceAjax.Editor) {
 
     editor.removeEventListener("change", onUpdateDocument);
     editor.removeEventListener("changeSelection", onChangeCursor);
 
-    editor.session.selection.off('changeCursor', addHinter);
+    editor.session.selection.off('changeCursor', enableHinter);
     
     ['autoComplete', 'refactor', 'indent'].forEach(w => editor.commands.removeCommand(w, true));
 
@@ -351,7 +366,14 @@ export function dropMode(editor: AceAjax.Editor) {
 }
 
 
-export function initialize(options: InitialOptions) {
+/**
+ * 
+ * @param options 
+ * @example 
+ * initialize({editor: editor})
+ * 
+ */
+export function initialize(options: InitialOptions): ts.LanguageServiceHost {
     
     options = options || {}
     const selector = options.selector || "editor";    
@@ -359,7 +381,6 @@ export function initialize(options: InitialOptions) {
     editor = options.editor || ace.edit(selector);    
     if (!options.editor) editor.setTheme("ace/theme/monokai");    
     editor.getSession().setMode('ace/mode/typescript');       
-    console.log(123);
     
     
     // var outputEditor: AceAjax.Editor = ace.edit("output");
@@ -368,9 +389,9 @@ export function initialize(options: InitialOptions) {
 
     if (selector) document.getElementById(selector).style.fontSize = options.fontSize || '14px';
 
-    loadLibFiles();
+    let languageService = loadLibFiles(options.libFiles);
     if (options.content) {
-        loadContent(options.entryFile || 'app.ts', options.content)
+        loadContent(options.entryFile || 'app.ts', options.content, !!options.editor)
     }
     // if DEBUG
     else {        
@@ -384,7 +405,7 @@ export function initialize(options: InitialOptions) {
     editor.addEventListener("changeSelection", onChangeCursor);    
     
     if (options.signatureToolTip) {        
-        editor.session.selection.on('changeCursor', addHinter);
+        editor.session.selection.on('changeCursor', enableHinter);
     }
 
     editor.commands.addCommands([
@@ -470,13 +491,18 @@ export function initialize(options: InitialOptions) {
         });
     });    
     
+    return languageService;
+
 }
 
 
 
 
-
-function addHinter(e: Event) {
+/**
+ * @description adds listener to changeCursor, which waits for the start of the function when the user writes
+ * @param e 
+ */
+function enableHinter(e: Event) {
 
     if (signatureToolTip) {
         if (signatureToolTip.parentElement)
@@ -530,16 +556,5 @@ function addHinter(e: Event) {
         }
 
     }
-}
-
-
-/**
- * @description adds listener to changeCursor, which one expect function expression begin when user writting
- */
-function signatureHinterEnable() {
-
-    editor.session.selection.on('changeCursor', addHinter);
-
-    return addHinter;
 }
 
