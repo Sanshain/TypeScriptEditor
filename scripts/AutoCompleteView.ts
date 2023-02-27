@@ -92,23 +92,17 @@ export class AutoCompleteView{
         if (elm) {
             newMargin = '';
             wrapHeight = this.wrap.offsetHeight;
-            // wrapHeight = $(this.wrap).height();
             elmOuterHeight = elm.offsetHeight;
-            // elmOuterHeight = $(elm).outerHeight();            
             preMargin = +getComputedStyle(this.listElement).marginTop.replace('px', '')
-            // preMargin = parseInt($(this.listElement).css("margin-top").replace('px', ''), 10);
             
             pos = {left: elm.offsetLeft, top: elm.offsetTop} 
-            // pos = $(elm).position();
             if (pos.top >= (wrapHeight - elmOuterHeight)) {
                 newMargin = (preMargin - elmOuterHeight) + 'px';
                 this.listElement.style.marginTop = newMargin;
-                // $(this.listElement).css("margin-top", newMargin);                
             }
             if (pos.top < 0) {
                 newMargin = (-pos.top + preMargin) + 'px';
                 this.listElement.style.marginTop = newMargin;
-                // return $(this.listElement).css("margin-top", newMargin);
             }
         }
     };
