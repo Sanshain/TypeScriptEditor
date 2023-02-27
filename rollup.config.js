@@ -14,6 +14,8 @@ import { createFilter } from '@rollup/pluginutils';
 
 import MagicString from 'magic-string'
 import { uglify } from "rollup-plugin-uglify";
+import dts from "rollup-plugin-dts";
+
 // module.exports = {}
 
 
@@ -272,7 +274,7 @@ const tsBuildConfig = {
             sourceMap: true,
             // compilerOptions: {
             //     preserveSymlinks: false
-            // }            
+            // }
         })
     ].concat(MINIFY ? [
         uglify({
@@ -283,8 +285,11 @@ const tsBuildConfig = {
 
 
 export default [    
-    // tsWorkerBuildConfig,    
-    tsBuildConfig,
+    // tsWorkerBuildConfig,
+    // tsBuildConfig,
+
+
+    // ES:
     // {
     //     ...tsBuildConfig,
     //     output: {
@@ -295,5 +300,18 @@ export default [
     //         // sourcemap: true
     //     },
     //     plugins: tsBuildConfig.plugins.slice(0, 5)
-    // }
+    // },
+    
+
+    // D.TS
+    {
+        ...tsBuildConfig,
+        output: {
+            file: './build/ts-editor.esm.d.ts',
+            format: 'es',
+            name: 'tsEditor',
+        },
+        plugins: [dts()]
+    },
+
 ];

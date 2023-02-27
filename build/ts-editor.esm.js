@@ -1,9 +1,8 @@
 function readFile(path, cb) {
-    $.ajax({
-        type: "GET",
-        url: path,
-        success: cb,
-        error: (function (jqXHR, textStatus) { return console.log(textStatus); })
+    fetch(path).then(function (r) { return r.text(); }).then(function (r) {
+        cb(r);
+    }).catch(function (err) {
+        console.warn(arguments);
     });
 }
 
@@ -726,14 +725,14 @@ var AutoCompleteView = (function () {
     AutoCompleteView.prototype.setPosition = function (coords) {
         var bottom, editorBottom, top;
         top = coords.pageY + 20;
-        editorBottom = $(this.editor.container).offset().top + $(this.editor.container).height();
-        bottom = top + $(this.wrap).height();
+        editorBottom = this.editor.container.getBoundingClientRect().top + this.editor.container.offsetHeight;
+        bottom = top + this.wrap.offsetHeight;
         if (bottom < editorBottom) {
             this.wrap.style.top = top + 'px';
             return this.wrap.style.left = coords.pageX + 'px';
         }
         else {
-            this.wrap.style.top = (top - $(this.wrap).height() - 20) + 'px';
+            this.wrap.style.top = (top - this.wrap.offsetHeight - 20) + 'px';
             return this.wrap.style.left = coords.pageX + 'px';
         }
     };
@@ -780,17 +779,17 @@ var AutoCompleteView = (function () {
         elm = this.current();
         if (elm) {
             newMargin = '';
-            wrapHeight = $(this.wrap).height();
-            elmOuterHeight = $(elm).outerHeight();
-            preMargin = parseInt($(this.listElement).css("margin-top").replace('px', ''), 10);
-            pos = $(elm).position();
+            wrapHeight = this.wrap.offsetHeight;
+            elmOuterHeight = elm.offsetHeight;
+            preMargin = +getComputedStyle(this.listElement).marginTop.replace('px', '');
+            pos = { left: elm.offsetLeft, top: elm.offsetTop };
             if (pos.top >= (wrapHeight - elmOuterHeight)) {
                 newMargin = (preMargin - elmOuterHeight) + 'px';
-                $(this.listElement).css("margin-top", newMargin);
+                this.listElement.style.marginTop = newMargin;
             }
             if (pos.top < 0) {
                 newMargin = (-pos.top + preMargin) + 'px';
-                return $(this.listElement).css("margin-top", newMargin);
+                this.listElement.style.marginTop = newMargin;
             }
         }
     };
@@ -2590,7 +2589,6 @@ var AutoComplete = (function () {
             _this.compilation(cursor);
         };
         this.showCompilation = function (infos) {
-            console.log(infos);
             if (infos.length > 0) {
                 _this.view.show();
                 var html = '';

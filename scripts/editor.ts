@@ -376,7 +376,7 @@ export function dropMode(editor: AceAjax.Editor) {
 export function initialize(options: InitialOptions): ts.LanguageServiceHost {
     
     options = options || {}
-    const selector = options.selector || "editor";    
+    const selector = options.selector || "editor";
     
     editor = options.editor || ace.edit(selector);    
     if (!options.editor) editor.setTheme("ace/theme/monokai");    

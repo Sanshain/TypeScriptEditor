@@ -15,7 +15,7 @@
     },
     "include": [
         "./scripts/*.ts*",
-        "./scripts/lib/ace/mode/typescript/typescript_worker.ts"
+        "./scripts/lib/ace/mode/typescript/typescript_worker.ts",
         // "./scripts/lib/ace/mode/typescript/*.ts"
     ],
     "exclude": [
