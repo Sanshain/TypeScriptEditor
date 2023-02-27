@@ -6,10 +6,20 @@ export function javascriptRun(js) {
 }
 
 export function readFile(path, cb) {
-    $.ajax({
-        type: "GET",
-        url: path,
-        success: cb,
-        error: ((jqXHR, textStatus) => console.log(textStatus))
-    });
+    
+    fetch(path).then(r => r.text()).then(r => {
+        
+        cb(r)
+    }).catch(function (err) {
+        
+        console.warn(arguments);        
+    })
+
+    // $.ajax({
+    //     type: "GET",
+    //     url: path,
+    //     success: cb,
+    //     error: ((jqXHR, textStatus) => console.log(textStatus))
+    // });
+
 }
