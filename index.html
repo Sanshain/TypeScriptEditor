@@ -3,7 +3,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Typescript playground on ace editor</title>
     <meta name="description" content="Typescript playground on ace editor" /><meta>
-    <link type="text/css" rel="stylesheet" href="stylesheets/bootstrap.min.css" />
+    <!-- <link type="text/css" rel="stylesheet" href="stylesheets/bootstrap.min.css" /> -->
     <link type="text/css" rel="stylesheet" href="stylesheets/style.css" />
     <style>
         .warp-container{
@@ -55,6 +55,7 @@
                 </div>
             </div>
         </div> -->
+
     </div>
 </div>
 
@@ -77,6 +78,7 @@
 
   <!-- greater then 4.6.4 version throws the error 'Cannot read properties of undefined (reading 'target') from compilerOptions inside getEmitScriptTarget' -->  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.6.4/typescript.min.js"></script>
+  <!-- <script src="./scripts/lib/typescript_v4.6.4-min.js"></script> -->
     
     <!-- <script src="./scripts/lib/require.js" data-main="main" type="text/javascript"></script>   -->
 
@@ -92,7 +94,10 @@
     
     <script>
         tsEditor.initialize({
-            signatureToolTip: true
+            signatureToolTip: true,
+            fileNavigator: {
+                _active: "samples/greeter.ts"
+            }
         })
     </script>
 

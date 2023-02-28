@@ -40,8 +40,8 @@ const smartConverter = {
                 // let source = new MagicString(code)
 
                 // cjs
-                code = code.replace('define(function(require, exports, module) {', '').replace(/\}\);/g, (match, offset, _content) => {
-                    if (_content.length - offset < 7) return '';
+                code = code.replace('define(function(require, exports, module) {', '\n').replace(/\}\);/g, (match, offset, _content) => {
+                    if (_content.length - offset < 7) return '\n';
                     else {
                         return match;
                     }
@@ -49,7 +49,7 @@ const smartConverter = {
 
                 return {
                     code: code,
-                    map: { mappings: '' }
+                    map: null         // { mappings: '' }
                 };
             }
         };
@@ -68,7 +68,7 @@ const smartConverter = {
                 // let source = new MagicString(code)
 
                 // iife
-                code = code.replace('define', '').replace(/\}\);/g, (match, offset, _content) => {
+                code = code.replace('define', '\n').replace(/\}\);/g, (match, offset, _content) => {
                     if (_content.length - offset < 7) return '})();';
                     else {
                         return match;
@@ -88,18 +88,23 @@ const smartConverter = {
 
         return {
             name: 'addDefault',
+            /**
+             * @param {string} code
+             * @param {string} file
+             */
             transform(code, file) {                
 
                 if (!filter(file)) return;
 
-                // let source = new MagicString(code)
+                let source = new MagicString(code)
+                source = source.append('\n\nexports.default = exports;')
 
                 // iife
                 code = code + '\n\nexports.default = exports;'
 
                 return {
-                    code: code,
-                    map: null
+                    code: source.toString(),
+                    map: source.generateMap({ hires: false, file: file })
                 };
             }
         };
@@ -224,7 +229,7 @@ const tsBuildConfig = {
             format: 'iife',
             // name: 'typescriptEditorInitialize',
             name: 'tsEditor',
-            // sourcemap: true
+            sourcemap: true
         },
     ],
     plugins: [
@@ -278,7 +283,11 @@ const tsBuildConfig = {
         })
     ].concat(MINIFY ? [
         uglify({
-            mangle: false
+            mangle: false,
+            compress: {
+                drop_debugger: false,
+                // drop_console: true
+            },
         })
     ] : [])
 }
@@ -286,7 +295,7 @@ const tsBuildConfig = {
 
 export default [    
     // tsWorkerBuildConfig,
-    // tsBuildConfig,
+    tsBuildConfig,
 
 
     // ES:
@@ -304,14 +313,14 @@ export default [
     
 
     // D.TS
-    {
-        ...tsBuildConfig,
-        output: {
-            file: './build/ts-editor.esm.d.ts',
-            format: 'es',
-            name: 'tsEditor',
-        },
-        plugins: [dts()]
-    },
+    // {
+    //     ...tsBuildConfig,
+    //     output: {
+    //         file: './build/ts-editor.esm.d.ts',
+    //         format: 'es',
+    //         name: 'tsEditor',
+    //     },
+    //     plugins: [dts()]
+    // },
 
 ];

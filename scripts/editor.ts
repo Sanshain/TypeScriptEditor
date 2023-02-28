@@ -14,7 +14,9 @@ type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { edi
     content?: string,
     signatureToolTip?: boolean,
     fontSize?: string,
-    libFiles?: string[]
+    libFiles?: string[],
+    position?: AceAjax.Position,
+    fileNavigator?: Record<string, string> & {_active: string}
 }
 
 
@@ -47,6 +49,7 @@ var aceEditorPosition = null;
 let signatureToolTip: HTMLElement = null;
 let originalTextInput: (s: string) => void = null;
 let closuredEvents: { [k in 'compileErrors' | 'mousedown']?: Function } = {};
+let fileNavigator: Record<string, string> & { _active: string } = null;
 
 
 var editor:AceAjax.Editor = null;
@@ -125,8 +128,8 @@ function loadContent(filename: string, content: string, keepExistContent?: boole
     syncStop = true;    
     if (!keepExistContent) {
         var data = content.replace(/\r\n?/g, "\n");
-        editor.setValue(data);
-        editor.moveCursorTo(0, 0);
+        editor.session.setValue(data);
+        // editor.moveCursorTo(0, 0);
     }
     tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
     syncStop = false;
@@ -373,9 +376,12 @@ export function dropMode(editor: AceAjax.Editor) {
  * initialize({editor: editor})
  * 
  */
-export function initialize(options: InitialOptions): ts.LanguageServiceHost {
+export function initialize(options: InitialOptions): [ts.LanguageServiceHost, AceAjax.Editor] {
     
     options = options || {}
+    fileNavigator = options.fileNavigator = options.fileNavigator || {
+        _active: options.entryFile || 'app.ts'
+    }
     const selector = options.selector || "editor";
     
     editor = options.editor || ace.edit(selector);    
@@ -387,14 +393,20 @@ export function initialize(options: InitialOptions): ts.LanguageServiceHost {
     // outputEditor.setTheme("ace/theme/monokai");
     // outputEditor.getSession().setMode('ace/mode/javascript');
 
-    if (selector) document.getElementById(selector).style.fontSize = options.fontSize || '14px';
+
+    if (selector) {
+        let wrapper = document.getElementById(selector)
+        if (wrapper) {
+            wrapper.style.fontSize = options.fontSize || '14px';
+        }
+    }
 
     let languageService = loadLibFiles(options.libFiles);
-    if (options.content) {
-        loadContent(options.entryFile || 'app.ts', options.content, !!options.editor)
+    if (options.content || options.editor) {
+        loadContent(options.entryFile || options.fileNavigator._active || 'app.ts', options.content || options.editor.getValue(), !!options.editor)
     }
     // if DEBUG
-    else {        
+    else if(!options.editor) {        
         // if (options.contentFile)
         loadFile(options.entryFile || "samples/greeter.ts");
     }
@@ -407,6 +419,8 @@ export function initialize(options: InitialOptions): ts.LanguageServiceHost {
     if (options.signatureToolTip) {        
         editor.session.selection.on('changeCursor', enableHinter);
     }
+
+    if (options.position) editor.moveCursorTo(options.position.row, options.position.column)
 
     editor.commands.addCommands([
         {
@@ -491,7 +505,7 @@ export function initialize(options: InitialOptions): ts.LanguageServiceHost {
         });
     });    
     
-    return languageService;
+    return [languageService, editor];
 
 }
 
@@ -510,8 +524,8 @@ function enableHinter(e: Event) {
         else if (signatureToolTip.remove) {
             signatureToolTip.remove();
         }
-    }
-
+    }    
+    
     let pos = editor.getCursorPosition();
     let range = editor.session.getTextRange(new AceRange(0, 0, pos.row, pos.column));
     let arr = range.split('\n');
@@ -533,14 +547,15 @@ function enableHinter(e: Event) {
     let token = editor.session.getTokenAt(pos.row, pos.column);
 
     if (token && token.value == '(') {
+
         // tooltip:
-        let info = tsProject.languageService.getDefinitionAtPosition("samples/greeter.ts", flatPos - 2);
+        let info = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active || "samples/greeter.ts", flatPos - 2);        
 
+        if (info && info.length) {            
 
-        if (info && info.length) {
             if (~['function', 'method'].indexOf(info[0].kind)) {
 
-                let quickInfo = tsProject.languageService.getQuickInfoAtPosition("samples/greeter.ts", flatPos - 2);
+                let quickInfo = tsProject.languageService.getQuickInfoAtPosition(fileNavigator._active || "samples/greeter.ts", flatPos - 2);
 
                 if (quickInfo && Array.isArray(quickInfo.displayParts)) {
                     let params = quickInfo.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text);
