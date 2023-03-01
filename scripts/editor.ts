@@ -117,6 +117,7 @@ function loadFile(filename: string) {
     });
 }
 
+
 /**
  * 
  * @param filename 
@@ -133,6 +134,34 @@ function loadContent(filename: string, content: string, keepExistContent?: boole
     }
     tsProject.languageServiceHost.addScript(filename, editor.getSession().getDocument().getValue());
     syncStop = false;
+}
+
+function changeSelectFileName(filename: string) {
+    selectFileName = filename;
+}
+
+const tsServiceHandler = {
+
+    loadPackages: loadLibFiles,
+    /**
+     * @description loadContent alias - use to load entry file name and content
+     * - add script to languageServiceHost
+     * - set file as selectFileName (active file for autocomplete) 
+     *
+     * - require use with adding to worker like loadLibFiles for correct type checking
+     * @example editor.getSession().$worker.emit("addLibrary", {data: { name:libname, content:content }} );
+     * @info keep also in mind `removeLibrary` and `updateModule` emit commands
+     */
+    loadContent: loadContent,
+    changeSelectFileName,
+    removeFile: tsProject.languageServiceHost.removeScript,
+    getLoadedFilenames: tsProject.languageServiceHost.getScriptFileNames,
+    hasFile: tsProject.languageServiceHost.hasScript,
+    updateFile: tsProject.languageServiceHost.updateScript,
+    
+    setCompilationSettings: tsProject.languageServiceHost.setCompilationSettings,
+    getCompilationSettings: tsProject.languageServiceHost.getCompilationSettings,    
+    _$editFile: tsProject.languageServiceHost.editScript,                           // not fixed file name yet (look up TODO-s inside)
 }
 
 function startAutoComplete(editor){
@@ -216,7 +245,7 @@ function syncTypeScriptServiceContent(script, data:AceAjax.EditorChangeEvent){
 };
 
 
-function editLanguageService(name, minChar,limChar,newText){
+function editLanguageService(name: string, minChar: number, limChar: number, newText: string){
     tsProject.languageServiceHost.editScript(name, minChar, limChar, newText);
 }
 
@@ -348,7 +377,7 @@ function workerOnCreate(func, timeout){
  * @param editor 
  * @returns 
  */
-export function dropMode(editor: AceAjax.Editor) {
+export function dropMode(editor: AceAjax.Editor): AceAjax.Editor {
 
     editor.removeEventListener("change", onUpdateDocument);
     editor.removeEventListener("changeSelection", onChangeCursor);
@@ -376,7 +405,8 @@ export function dropMode(editor: AceAjax.Editor) {
  * initialize({editor: editor})
  * 
  */
-export function initialize(options: InitialOptions): [ts.LanguageServiceHost, AceAjax.Editor] {
+// export function initialize(options: InitialOptions): [ts.LanguageServiceHost, AceAjax.Editor] {
+export function initialize(options: InitialOptions): [typeof tsServiceHandler, AceAjax.Editor] {
     
     options = options || {}
     fileNavigator = options.fileNavigator = options.fileNavigator || {
@@ -395,7 +425,8 @@ export function initialize(options: InitialOptions): [ts.LanguageServiceHost, Ac
 
 
     if (selector) {
-        let wrapper = document.getElementById(selector)
+
+        let wrapper = document.getElementById(selector)        
         if (wrapper) {
             wrapper.style.fontSize = options.fontSize || '14px';
         }
@@ -505,7 +536,8 @@ export function initialize(options: InitialOptions): [ts.LanguageServiceHost, Ac
         });
     });    
     
-    return [languageService, editor];
+    // return [languageService, editor];
+    return [tsServiceHandler, editor];
 
 }
 

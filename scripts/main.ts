@@ -23,6 +23,10 @@ export function defaultFormatCodeOptions(): ts.FormatCodeOptions {
         InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: false,
         PlaceOpenBraceOnNewLineForFunctions: false,
         PlaceOpenBraceOnNewLineForControlBlocks: false,
+        
+        IndentStyle: 0,
+        InsertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false,
+        InsertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: false
     };
 }
 

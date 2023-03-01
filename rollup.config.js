@@ -312,7 +312,7 @@ export default [
     // },
     
 
-    // D.TS
+    /// D.TS
     // {
     //     ...tsBuildConfig,
     //     output: {

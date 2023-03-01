@@ -46,14 +46,18 @@ import { Document } from "../../document.js";
 import {getTSProject} from "./tsProject";
 var tsProject = getTSProject();
 
-function setupInheritanceCall(sender) {
+function setupInheritanceCall(sender: { on: (arg: string, ev: (e: { data: any;}) => void) => void; emit: (arg: string) => void; }) {
     this.sender = sender;
     var doc = this.doc = new Document("");
 
     var deferredUpdate = this.deferredUpdate = lang.deferredCall(this.onUpdate.bind(this));
 
     var _self = this;
-    sender.on("change", function(e) {
+    sender.on("change", function (e: { data: any; }) {
+        
+        // this one checks onUpdate()=>updateScript(fileName)=> check truth filename instead temp.ts
+        console.warn(e);
+
         var data = e.data;
         if (data[0].start) {            
             doc.applyDeltas(data);
@@ -73,9 +77,18 @@ function setupInheritanceCall(sender) {
         _self.onUpdate();
     });
 
+
     sender.on("addLibrary", function(e) {
-        _self.addlibrary(e.data.name , e.data.content);
+        _self.addlibrary(e.data.name, e.data.content);
     });
+
+    sender.on("removeLibrary", function(e: {data: {name: string}}) {        
+        tsProject.languageServiceHost.removeScript(e.data.name);     
+    })
+
+    sender.on("updateModule", function (e: { data: { name: string, content: string } }) {
+        tsProject.languageServiceHost.updateScript(e.data.name, e.data.content);
+    })    
 
     this.setOptions();
     sender.emit("initAfter");
@@ -102,8 +115,8 @@ export class TypeScriptWorker {
         this.deferredUpdate.schedule(100);
     };
     
-    addlibrary = (name, content) => {
-        tsProject.languageServiceHost.addScript(name, content);
+    addlibrary = (name: string, content: string) => {
+        tsProject.languageServiceHost.addScript(name, content);        
     };
     
     getCompletionsAtPosition = (fileName, pos, isMemberCompletion, id) => {
@@ -112,6 +125,9 @@ export class TypeScriptWorker {
     };
     
     onUpdate = () => {
+
+        debugger;
+
         // TODO: get the name of the actual file
         var fileName = "temp.ts";
         
@@ -126,9 +142,10 @@ export class TypeScriptWorker {
         var output = services.getEmitOutput(fileName);
         var jsOutput = output.outputFiles.map(o=>o.text).join('\n');
         
-        var allDiagnostics = services.getCompilerOptionsDiagnostics()
-        .concat(services.getSyntacticDiagnostics(fileName))
-        .concat(services.getSemanticDiagnostics(fileName));
+        var allDiagnostics = services
+            .getCompilerOptionsDiagnostics()
+            .concat(services.getSyntacticDiagnostics(fileName))
+            .concat(services.getSemanticDiagnostics(fileName));
         
         this.sender.emit("compiled", jsOutput);
 
