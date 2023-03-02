@@ -136,12 +136,26 @@ function loadContent(filename: string, content: string, keepExistContent?: boole
     syncStop = false;
 }
 
+function getFileContent(name:string) {
+    return tsProject.languageServiceHost.getScriptContent(name);
+}
+
+function getSelectFileName() {
+    return selectFileName;
+}
+
 function changeSelectFileName(filename: string) {
     selectFileName = filename;
+    // editor.session.$worker.changeActiveFile({ data: filename })
+    editor.session.$worker.emit('changeActiveFile', {data: filename})
 }
 
 const tsServiceHandler = {
-
+    /**
+     * @description
+    * - add script to languageServiceHost
+    * - apply $worker.emit("addLibrary")
+     */
     loadPackages: loadLibFiles,
     /**
      * @description loadContent alias - use to load entry file name and content
@@ -153,9 +167,14 @@ const tsServiceHandler = {
      * @info keep also in mind `removeLibrary` and `updateModule` emit commands
      */
     loadContent: loadContent,
+
     changeSelectFileName,
     removeFile: tsProject.languageServiceHost.removeScript,
+
     getLoadedFilenames: tsProject.languageServiceHost.getScriptFileNames,
+    getFileContent,
+    getSelectFileName,
+
     hasFile: tsProject.languageServiceHost.hasScript,
     updateFile: tsProject.languageServiceHost.updateScript,
     

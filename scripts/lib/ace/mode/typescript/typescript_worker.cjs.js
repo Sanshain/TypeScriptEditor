@@ -324,6 +324,7 @@ exports.delayedCall = function(fcn, defaultTimeout) {
 
 
 
+
 exports.default = exports;
 }(lang$1));
 
@@ -2280,6 +2281,7 @@ function getTSProject() {
 }
 
 var tsProject = getTSProject();
+var activeFile = 'app.ts';
 function setupInheritanceCall(sender) {
     this.sender = sender;
     var doc = this.doc = new Document_1("");
@@ -2308,6 +2310,24 @@ function setupInheritanceCall(sender) {
     });
     sender.on("addLibrary", function (e) {
         _self.addlibrary(e.data.name, e.data.content);
+        console.log('addLibrary');
+    });
+    sender.on("removeLibrary", function (e) {
+        tsProject.languageServiceHost.removeScript(e.data.name);
+        console.log('removeLibrary');
+    });
+    sender.on("updateModule", function (e) {
+        tsProject.languageServiceHost.updateScript(e.data.name, e.data.content);
+        console.log('updateModule');
+    });
+    sender.on("logModules", function () {
+        console.log(tsProject.languageServiceHost.getScriptFileNames());
+    });
+    sender.on("logModule", function (e) {
+        console.log(tsProject.languageServiceHost.getScriptContent(e.data.name));
+    });
+    sender.on("changeActiveFile", function (e) {
+        activeFile = e.data.title;
     });
     this.setOptions();
     sender.emit("initAfter");
@@ -2331,7 +2351,8 @@ var TypeScriptWorker = (function () {
             _this.sender.callback(ret, id);
         };
         this.onUpdate = function () {
-            var fileName = "temp.ts";
+            console.warn('onUpdate...');
+            var fileName = activeFile;
             if (tsProject.languageServiceHost.hasScript(fileName)) {
                 tsProject.languageServiceHost.updateScript(fileName, _this.doc.getValue());
             }
@@ -2341,7 +2362,8 @@ var TypeScriptWorker = (function () {
             var services = tsProject.languageService;
             var output = services.getEmitOutput(fileName);
             var jsOutput = output.outputFiles.map(function (o) { return o.text; }).join('\n');
-            var allDiagnostics = services.getCompilerOptionsDiagnostics()
+            var allDiagnostics = services
+                .getCompilerOptionsDiagnostics()
                 .concat(services.getSyntacticDiagnostics(fileName))
                 .concat(services.getSemanticDiagnostics(fileName));
             _this.sender.emit("compiled", jsOutput);

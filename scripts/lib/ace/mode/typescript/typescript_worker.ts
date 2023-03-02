@@ -46,7 +46,14 @@ import { Document } from "../../document.js";
 import {getTSProject} from "./tsProject";
 var tsProject = getTSProject();
 
-function setupInheritanceCall(sender: { on: (arg: string, ev: (e: { data: any;}) => void) => void; emit: (arg: string) => void; }) {
+let activeFile = 'app.ts'
+
+type Sender = {
+    on: (arg: string, ev: (e: { data: any; }) => void) => void;
+    emit: (arg: string) => void;
+}
+
+function setupInheritanceCall(sender: Sender) {
     this.sender = sender;
     var doc = this.doc = new Document("");
 
@@ -55,8 +62,8 @@ function setupInheritanceCall(sender: { on: (arg: string, ev: (e: { data: any;})
     var _self = this;
     sender.on("change", function (e: { data: any; }) {
         
-        // this one checks onUpdate()=>updateScript(fileName)=> check truth filename instead temp.ts
-        console.warn(e);
+        // TODO this one checks onUpdate()=>updateScript(fileName)=> check truth filename instead temp.ts
+        // console.warn(e);
 
         var data = e.data;
         if (data[0].start) {            
@@ -80,15 +87,36 @@ function setupInheritanceCall(sender: { on: (arg: string, ev: (e: { data: any;})
 
     sender.on("addLibrary", function(e) {
         _self.addlibrary(e.data.name, e.data.content);
+        console.log('addLibrary');        
     });
 
     sender.on("removeLibrary", function(e: {data: {name: string}}) {        
-        tsProject.languageServiceHost.removeScript(e.data.name);     
+        tsProject.languageServiceHost.removeScript(e.data.name);    
+        console.log('removeLibrary');
     })
 
     sender.on("updateModule", function (e: { data: { name: string, content: string } }) {
         tsProject.languageServiceHost.updateScript(e.data.name, e.data.content);
+        console.log('updateModule');
     })    
+
+    // if DEBUG
+
+    sender.on("logModules", function () {        
+        console.log(tsProject.languageServiceHost.getScriptFileNames())
+        // debugger;
+    })   
+
+    sender.on("logModule", function (e: { data: { name: string } }) {
+        // debugger;
+        console.log(tsProject.languageServiceHost.getScriptContent(e.data.name))
+    })      
+
+    // endif
+
+    sender.on("changeActiveFile", function (e: { data: { title: string } }) {
+        activeFile = e.data.title;
+    }) 
 
     this.setOptions();
     sender.emit("initAfter");
@@ -126,10 +154,10 @@ export class TypeScriptWorker {
     
     onUpdate = () => {
 
-        debugger;
+        console.warn('onUpdate...');
 
         // TODO: get the name of the actual file
-        var fileName = "temp.ts";
+        var fileName = activeFile; // "app.ts"; // "temp.ts";
         
         if (tsProject.languageServiceHost.hasScript(fileName)) {
             tsProject.languageServiceHost.updateScript(fileName, this.doc.getValue());

@@ -93,7 +93,7 @@
     <script src="./build//ts-editor.js"></script>
     
     <script>
-        tsEditor.initialize({
+        var [tsServiceHandler, editor] = tsEditor.initialize({
             signatureToolTip: true,
             fileNavigator: {
                 _active: "samples/greeter.ts"
