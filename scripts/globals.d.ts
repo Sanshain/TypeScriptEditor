@@ -9,7 +9,10 @@ declare module "ace/ace" {
 declare module AceAjax{
     interface IEditSession{
         // Only present if a worker is being used
-        $worker: any;
+        // $worker: any;
+        $worker: {
+            emit(cmd: 'addLibrary' |'changeActiveFile', params: {data: object | string})
+        }
     }
 }
 

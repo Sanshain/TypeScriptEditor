@@ -4,6 +4,7 @@
     "description": "",
     "main": "./build/ts-editor.esm.js",
     "type": "module",
+    "types": "./build/ts-editor.esm.d.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "types": "echo \"look up rollup.config.js for type generation features\" && exit 1",

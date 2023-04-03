@@ -16,7 +16,8 @@ type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { edi
     fontSize?: string,
     libFiles?: string[],
     position?: AceAjax.Position,
-    fileNavigator?: Record<string, string> & {_active: string}
+    fileNavigator?: Record<string, string> & { _active: string }
+    autocompleteStart?: number
 }
 
 
@@ -84,16 +85,16 @@ function loadLibFiles(libFiles?: string[]): ts.LanguageServiceHost {
         // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
     ];
     
-    // Load files here 
+    // Load files here (to autocomplete)
     libFiles.forEach(function (libname) {
         if (tsProject.languageServiceHost.hasScript(libname) === false) {
             readFile(libname, function (content) {
                 tsProject.languageServiceHost.addScript(libname, content);
-            });   
+            });
         }
     });
 
-    // Load files in the worker
+    // Load files in the worker (to error checking)
     workerOnCreate(function(){//TODO use worker init event
         libFiles.forEach(function(libname){
             readFile(libname, function(content){
@@ -119,7 +120,7 @@ function loadFile(filename: string) {
 
 
 /**
- * 
+ * load file content for autocomplete
  * @param filename 
  * @param content - content for type checking
  * @param keepExistContent - flag to keep editor content if exists inside origin Ace 
@@ -144,6 +145,10 @@ function getSelectFileName() {
     return selectFileName;
 }
 
+/**
+ * change selected file name
+ * @param filename 
+ */
 function changeSelectFileName(filename: string) {
     selectFileName = filename;
     // editor.session.$worker.changeActiveFile({ data: filename })
@@ -168,6 +173,9 @@ const tsServiceHandler = {
      */
     loadContent: loadContent,
 
+    /**
+     * @description change selected file 
+     */
     changeSelectFileName,
     removeFile: tsProject.languageServiceHost.removeScript,
 
@@ -509,7 +517,7 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
         let pos = editor.getCursorPosition();
         let token = editor.session.getTokenAt(pos.row, pos.column);
         
-        if (token && token.value.length > 1 && token.value.match(/\w[\w\d_\$]+/)) {            
+        if (token && token.value.length > (options.autocompleteStart || 1) && token.value.match(/\w[\w\d_\$]+/)) {            
             
             editor.execCommand("autoComplete");
             return
