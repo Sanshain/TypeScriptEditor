@@ -517,7 +517,12 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
         let pos = editor.getCursorPosition();
         let token = editor.session.getTokenAt(pos.row, pos.column);
         
-        if (token && token.value.length >= (options.autocompleteStart || 2) && token.value.match(/\w[\w\d_\$]+/)) {            
+        console.log(token && token.value.length);
+        console.log(options.autocompleteStart);
+        
+        
+        if (token && token.value.length >= (options.autocompleteStart || 2) && token.value.match(/[\w\d_\$]+/)) {            
+            // token.value.match(/\w[\w\d_\$]+/);
             
             // TODO?? with debounce
             editor.execCommand("autoComplete");
