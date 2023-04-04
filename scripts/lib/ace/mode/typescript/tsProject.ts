@@ -32,7 +32,16 @@ class TsProject {
 
     constructor() {
         this.languageServiceHost = createLanguageServiceHost('', "typescripts/lib.d.ts");
-        this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry());
+        this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry(
+            // true,
+            // ''
+        ));
+        this.languageServiceHost.setCompilationSettings({
+            jsx: 1,
+            baseUrl: './'
+            // rootDir: ''
+            // include: ['./**/*.ts']
+        });
     }
 }
 

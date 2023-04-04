@@ -2272,6 +2272,10 @@ var TsProject = (function () {
     function TsProject() {
         this.languageServiceHost = createLanguageServiceHost('', "typescripts/lib.d.ts");
         this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry());
+        this.languageServiceHost.setCompilationSettings({
+            jsx: 1,
+            baseUrl: './'
+        });
     }
     return TsProject;
 }());
@@ -2351,7 +2355,6 @@ var TypeScriptWorker = (function () {
             _this.sender.callback(ret, id);
         };
         this.onUpdate = function () {
-            console.warn('onUpdate...');
             var fileName = activeFile;
             if (tsProject.languageServiceHost.hasScript(fileName)) {
                 tsProject.languageServiceHost.updateScript(fileName, _this.doc.getValue());
