@@ -312,15 +312,15 @@ export default [
     // },
     
 
-    /// D.TS
-    // {
-    //     ...tsBuildConfig,
-    //     output: {
-    //         file: './build/ts-editor.esm.d.ts',
-    //         format: 'es',
-    //         name: 'tsEditor',
-    //     },
-    //     plugins: [dts()]
-    // },
+    // D.TS
+    {
+        ...tsBuildConfig,
+        output: {
+            file: './build/ts-editor.esm.d.ts',
+            format: 'es',
+            name: 'tsEditor',
+        },
+        plugins: [dts()]
+    },
 
 ];
