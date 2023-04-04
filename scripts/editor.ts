@@ -72,23 +72,30 @@ var tsProject = getTSProject();
 /**
  * @description load initial lib files to languageServiceHost if not exists and to worker (w/o checking on exists) on first loading
  */
-function loadLibFiles(libFiles?: string[]): ts.LanguageServiceHost {
+function loadLibFiles(sourceFiles: string[], aliases?: Record<string, string>): ts.LanguageServiceHost {
+    
+    // Record<'vue', './types/vue'>
 
-    var libFiles = libFiles || [
-        // "typescripts/lib.d.ts",
-        "/typescripts/4.9.5/lib.dom.d.ts",
-        "/typescripts/4.9.5/lib.es5.d.ts",
-        // "/typescripts/4.9.5/lib.es2015.iterable.d.ts",      // Map, Set, WeakMap
-        "/typescripts/4.9.5/lib.dom.iterable.d.ts",         // FormData (+ Symbol as Iterator, some WebGL2context types)
-        // "/typescripts/4.9.5/lib.es2015.promise.d.ts",       // Promise.reject, Promise.resolve
-        // "/typescripts/4.9.5/lib.es2015.proxy.d.ts",
-        // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
+    aliases = aliases || {}
+
+    const libFiles = sourceFiles.concat(Object.keys(aliases)) || [
+      // "typescripts/lib.d.ts",
+      "/typescripts/4.9.5/lib.dom.d.ts",
+      "/typescripts/4.9.5/lib.es5.d.ts",
+      "/typescripts/4.9.5/lib.dom.iterable.d.ts", // FormData (+ Symbol as Iterator, some WebGL2context types)
+      "/typescripts/4.9.5/es2015.core.d.ts",
+      // "/typescripts/4.9.5/lib.es2015.iterable.d.ts",      // Map, Set, WeakMap
+      // "/typescripts/4.9.5/lib.es2015.promise.d.ts",       // Promise.reject, Promise.resolve
+      // "/typescripts/4.9.5/lib.es2015.proxy.d.ts",
+      // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
     ];
     
+    
+
     // Load files here (to autocomplete)
     libFiles.forEach(function (libname) {
         if (tsProject.languageServiceHost.hasScript(libname) === false) {
-            readFile(libname, function (content) {
+            readFile(aliases[libname] || libname, function (content) {
                 tsProject.languageServiceHost.addScript(libname, content);
             });
         }
@@ -97,14 +104,14 @@ function loadLibFiles(libFiles?: string[]): ts.LanguageServiceHost {
     // Load files in the worker (to error checking)
     workerOnCreate(function(){//TODO use worker init event
         libFiles.forEach(function(libname){
-            readFile(libname, function(content){
-                var params = {
-                    data: {
-                        name:libname,
-                        content:content
-                    }
-                };
-                editor.getSession().$worker.emit("addLibrary", params );
+            readFile(aliases[libname] || libname, function(content) {
+              var params = {
+                data: {
+                  name: libname,
+                  content: content,
+                },
+              };
+              editor.getSession().$worker.emit("addLibrary", params);
             });
         });
     }, 100);
