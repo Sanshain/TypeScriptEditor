@@ -10,6 +10,7 @@ declare type InitialOptions = ({
     signatureToolTip?: boolean;
     fontSize?: string;
     libFiles?: string[];
+    aliasedLibFiles?: Record<string, string>;
     position?: AceAjax.Position;
     fileNavigator?: Record<string, string> & {
         _active: string;

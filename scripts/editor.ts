@@ -15,6 +15,7 @@ type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { edi
     signatureToolTip?: boolean,
     fontSize?: string,
     libFiles?: string[],
+    aliasedLibFiles?: Record<string, string>,
     position?: AceAjax.Position,
     fileNavigator?: Record<string, string> & { _active: string }
     autocompleteStart?: number
@@ -466,7 +467,7 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
         }
     }
 
-    let languageService = loadLibFiles(options.libFiles);
+    let languageService = loadLibFiles(options.libFiles, options.aliasedLibFiles);
     if (options.content || options.editor) {
         loadContent(options.entryFile || options.fileNavigator._active || 'app.ts', options.content || options.editor.getValue(), !!options.editor)
     }
