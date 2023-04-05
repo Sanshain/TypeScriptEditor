@@ -95,8 +95,10 @@
     <script>
         var [tsServiceHandler, editor] = tsEditor.initialize({
             signatureToolTip: true,
+            // entryFile: 'app.tsx',
             fileNavigator: {
                 _active: "samples/greeter.ts"
+                // _active: "app.tsx"
             },
             autocompleteStart: 1
         })

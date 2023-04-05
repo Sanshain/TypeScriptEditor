@@ -1,19 +1,15 @@
-class Greeter { 
-	greeting: string;
-	constructor (message: string) {
-		this.greeting = message;
-	}
-	greet() {
-		return "Hello, " + this.greeting;
-	}
+/* typescript */
+
+// import "react/jsx-runtime";
+import React from "/node_modules/@types/react/index";
+import ReactDOM from "/node_modules/@types/react-dom/index";
+
+function App() {
+  const [count, setCount] = React.useState(0);
+
+  return <h1 onClick={ () => setCount(count + 1) }>
+    Click me: { count } !
+  </h1>;
 }
 
-var greeter = new Greeter("world");
-
-var button = document.createElement('button')
-button.innerText = "Say Hello"
-button.onclick = function() {
-	alert(greeter.greet())
-}
-
-document.body.appendChild(button)
+ReactDOM.render(<App />, document.getElementById("root"));

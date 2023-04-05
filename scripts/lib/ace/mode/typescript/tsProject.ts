@@ -37,11 +37,15 @@ class TsProject {
             // ''
         ));
         this.languageServiceHost.setCompilationSettings({
-            jsx: 1,
-            baseUrl: './'
-            // rootDir: ''
-            // include: ['./**/*.ts']
+          // jsx: 1,
+          //   jsx: 4,
+          jsx: 5,
+          baseUrl: "./",
+          esModuleInterop: true
+          // rootDir: ''
+          // include: ['./**/*.ts']
         });
+        // "esModuleInterop": true,?
     }
 }
 

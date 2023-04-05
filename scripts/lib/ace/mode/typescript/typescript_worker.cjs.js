@@ -2273,8 +2273,9 @@ var TsProject = (function () {
         this.languageServiceHost = createLanguageServiceHost('', "typescripts/lib.d.ts");
         this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry());
         this.languageServiceHost.setCompilationSettings({
-            jsx: 1,
-            baseUrl: './'
+            jsx: 5,
+            baseUrl: "./",
+            esModuleInterop: true
         });
     }
     return TsProject;
@@ -2285,7 +2286,7 @@ function getTSProject() {
 }
 
 var tsProject = getTSProject();
-var activeFile = 'app.ts';
+var activeFile = 'app.tsx';
 function setupInheritanceCall(sender) {
     this.sender = sender;
     var doc = this.doc = new Document_1("");
@@ -2355,6 +2356,7 @@ var TypeScriptWorker = (function () {
             _this.sender.callback(ret, id);
         };
         this.onUpdate = function () {
+            console.warn('onUpdate...');
             var fileName = activeFile;
             if (tsProject.languageServiceHost.hasScript(fileName)) {
                 tsProject.languageServiceHost.updateScript(fileName, _this.doc.getValue());
@@ -2372,6 +2374,7 @@ var TypeScriptWorker = (function () {
             _this.sender.emit("compiled", jsOutput);
             var annotations = [];
             allDiagnostics.forEach(function (error) {
+                error.messageText['messageText'] || error.messageText;
                 var pos = DocumentPositionUtil.getPosition(_this.doc, error.start);
                 annotations.push({
                     row: pos.row,

@@ -73,23 +73,38 @@ var tsProject = getTSProject();
 /**
  * @description load initial lib files to languageServiceHost if not exists and to worker (w/o checking on exists) on first loading
  */
-function loadLibFiles(sourceFiles: string[], aliases?: Record<string, string>): ts.LanguageServiceHost {
+function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>): ts.LanguageServiceHost {
     
     // Record<'vue', './types/vue'>
 
-    aliases = aliases || {}
+    aliases = aliases || {
+      "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
+      "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",
+      //   "react-dom": "/node_modules/@types/react-dom/index.d.ts",
+      //   react: "/node_modules/@types/react/index.d.ts",
+    };
 
-    const libFiles = sourceFiles.concat(Object.keys(aliases)) || [
-      // "typescripts/lib.d.ts",
-      "/typescripts/4.9.5/lib.dom.d.ts",
-      "/typescripts/4.9.5/lib.es5.d.ts",
-      "/typescripts/4.9.5/lib.dom.iterable.d.ts", // FormData (+ Symbol as Iterator, some WebGL2context types)
-      "/typescripts/4.9.5/es2015.core.d.ts",
-      // "/typescripts/4.9.5/lib.es2015.iterable.d.ts",      // Map, Set, WeakMap
-      // "/typescripts/4.9.5/lib.es2015.promise.d.ts",       // Promise.reject, Promise.resolve
-      // "/typescripts/4.9.5/lib.es2015.proxy.d.ts",
-      // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
-    ];
+    const libFiles = sourceFiles
+      ? sourceFiles.concat(Object.keys(aliases))
+      : [
+          // "typescripts/lib.d.ts",
+          "/typescripts/4.9.5/lib.dom.d.ts",
+          "/typescripts/4.9.5/lib.es5.d.ts",
+          "/typescripts/4.9.5/lib.dom.iterable.d.ts", // FormData (+ Symbol as Iterator, some WebGL2context types)
+          "/typescripts/4.9.5/es2015.core.d.ts",
+          // "/typescripts/4.9.5/lib.es2015.iterable.d.ts",      // Map, Set, WeakMap
+          // "/typescripts/4.9.5/lib.es2015.promise.d.ts",       // Promise.reject, Promise.resolve
+          // "/typescripts/4.9.5/lib.es2015.proxy.d.ts",
+          // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
+
+          "/node_modules/@types/react/index.d.ts",
+          "/node_modules/@types/react-dom/index.d.ts",
+          //   "react",
+          //   "react-dom",
+          "react/jsx-runtime.d.ts",
+          "react/jsx-dev-runtime.d.ts",
+          //   "/node_modules/@types/react/next.d.ts",
+        ];
     
     
 
@@ -562,13 +577,20 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
         // outputEditor.getSession().doc.setValue(e.data);
     });
 
-    editor.getSession().on("compileErrors", closuredEvents["compileErrors"] = function (e) {
+    editor.getSession().on("compileErrors", closuredEvents["compileErrors"] = function (ev) {
         var session = editor.getSession();
+        
         errorMarkers.forEach(function (id){
             session.removeMarker(id);
         });
         
-        e.data.forEach(function(error: { minChar: any; limChar: any; }){
+        ev.data.forEach(function (error: { minChar: number; limChar: number; text: string }) {
+            
+            // if (!!~error.text.indexOf("-runtime'")) {
+            //     console.warn(error.text);
+            //     return;
+            // }
+
             var getpos = aceEditorPosition.getAcePositionFromChars;
             var start = getpos(error.minChar);
             var end = getpos(error.limChar);

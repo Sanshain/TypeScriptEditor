@@ -46,7 +46,7 @@ import { Document } from "../../document.js";
 import {getTSProject} from "./tsProject";
 var tsProject = getTSProject();
 
-let activeFile = 'app.ts'
+let activeFile = 'app.tsx'
 
 type Sender = {
     on: (arg: string, ev: (e: { data: any; }) => void) => void;
@@ -154,7 +154,8 @@ export class TypeScriptWorker {
     
     onUpdate = () => {
 
-        // console.warn('onUpdate...');
+        console.warn('onUpdate...');
+        // debugger;
 
         // TODO: get the name of the actual file
         var fileName = activeFile; // "app.ts"; // "temp.ts";
@@ -178,7 +179,15 @@ export class TypeScriptWorker {
         this.sender.emit("compiled", jsOutput);
 
         var annotations = [];
-        allDiagnostics.forEach((error)=>{
+        allDiagnostics.forEach((error) => {
+            
+            // const errorText = error.messageText['messageText'] || error.messageText;
+            
+            // if (!!~errorText.indexOf("-runtime'")) {
+            //     console.warn(errorText);
+            //     return;
+            // }                
+
             var pos = DocumentPositionUtil.getPosition(this.doc, error.start);
             
             annotations.push({
