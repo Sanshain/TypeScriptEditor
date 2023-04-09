@@ -661,7 +661,7 @@ function showType(
     );
 
     if (typeDefenition.startsWith("function") && (info && info.positionIndex)) {
-        let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, info.positionIndex);
+        let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, info.positionIndex);        
         showType(definitions, event, startPoint, { typeDefenition });
         return;
     }
@@ -680,18 +680,18 @@ function showType(
             .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
             .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
 
-    if (info && info.typeDefenition) {
-        hintElem.innerHTML +=  '<hr/>' + info.typeDefenition
+    if (info && info.typeDefenition && info.typeDefenition !== typeDefenition) {
+        hintElem.innerHTML += "<hr/>" + info.typeDefenition
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace("class", "<span class='__keyword'>class</span>")
             .replace("function", "<span class='__keyword'>function</span>")
             .replace(/(never|undefined|void)/g, "<span class='__type'>$1</span>")
             .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
-            .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");        
+            .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
     }
     
-    console.log(typeDefenition);
+    // console.log(typeDefenition);
 
 
     hintElem.style.left = event.target.getBoundingClientRect().left - 16 + 'px';
