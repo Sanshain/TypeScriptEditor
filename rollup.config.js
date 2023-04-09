@@ -111,7 +111,7 @@ const smartConverter = {
     }
 }
 
-const MINIFY = true;
+const MINIFY = false;
 
 
 /**
@@ -294,7 +294,7 @@ const tsBuildConfig = {
 
 
 export default [    
-    tsWorkerBuildConfig,
+    // tsWorkerBuildConfig,
     tsBuildConfig,
 
 

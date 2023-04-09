@@ -13,8 +13,8 @@ export class CompletionService{
         // this.$tsProject = tsProject;
     }
 
-    getCompilation(script, charpos, isMemberCompletion) {        
-        var compInfo = tsProject.languageService.getCompletionsAtPosition(script, charpos, {});
+    getCompilation(script: string, charpos: number, isMemberCompletion: any) {
+        var compInfo = tsProject.languageService.getCompletionsAtPosition(script, charpos, {});        
         return compInfo;
     };
 

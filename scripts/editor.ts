@@ -12,13 +12,17 @@ import { deferredCall } from "./lib/ace/lib/lang";
 type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { editor?: undefined, selector?: string }) & {
     entryFile?: string,
     content?: string,
-    signatureToolTip?: boolean,
-    fontSize?: string,
     libFiles?: string[],
     aliasedLibFiles?: Record<string, string>,
-    position?: AceAjax.Position,
-    fileNavigator?: Record<string, string> & { _active: string }
-    autocompleteStart?: number
+    fileNavigator?: Record<string, string> & { _active: string }        // ? merge with aliasedLibFiles 
+    /// hinting:    
+    signatureToolTip?: boolean,
+    typeDefenitionOnHovering?: boolean,    
+    autocompleteStart?: number,        
+    /// common ui settings:
+    position?: AceAjax.Position,                                        // ?
+    fontSize?: string,
+    tabSize?: number
 }
 
 
@@ -67,7 +71,7 @@ var errorMarkers =[];
 
 // Start updating latest
 import {getTSProject} from "./lib/ace/mode/typescript/tsProject";
-import { extend } from './lib/ace/mode/coffee/nodes';
+import { extend, Undefined } from './lib/ace/mode/coffee/nodes';
 var tsProject = getTSProject();
 
 /**
@@ -79,7 +83,7 @@ function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>):
 
     aliases = aliases || {
       "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
-      "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",
+      "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",      
       //   "react-dom": "/node_modules/@types/react-dom/index.d.ts",
       //   react: "/node_modules/@types/react/index.d.ts",
     };
@@ -99,11 +103,8 @@ function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>):
 
           "/node_modules/@types/react/index.d.ts",
           "/node_modules/@types/react-dom/index.d.ts",
-          //   "react",
-          //   "react-dom",
           "react/jsx-runtime.d.ts",
           "react/jsx-dev-runtime.d.ts",
-          //   "/node_modules/@types/react/next.d.ts",
         ];
     
     
@@ -309,7 +310,12 @@ function onChangeCursor(e){
     }
 };
 
-function languageServiceIndent(){
+
+/**
+ * @description destination??
+ */
+function languageServiceIndent() {
+        
     var cursor = editor.getCursorPosition();
     var lineNumber = cursor.row;
 
@@ -329,7 +335,7 @@ function languageServiceIndent(){
 
     var smartIndent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, defaultFormatCodeOptions());
 
-    if(preIndent > smartIndent){
+    if (preIndent > smartIndent) {
         editor.indent();
     }else{
         var indent = smartIndent - preIndent;
@@ -341,8 +347,11 @@ function languageServiceIndent(){
 
         if( cursor.column > wordLen){
             cursor.column += indent;
-        }else{
-            cursor.column = indent + wordLen;
+        } else {
+            if (cursor.column === 0) cursor.column++;
+            else {
+                cursor.column = indent + wordLen;
+            }
         }
 
         editor.getSelection().moveCursorToPosition(cursor);
@@ -464,9 +473,11 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
     }
     const selector = options.selector || "editor";
     
-    editor = options.editor || ace.edit(selector);    
+    editor = options.editor || ace.edit(selector);
     if (!options.editor) editor.setTheme("ace/theme/monokai");    
     editor.getSession().setMode('ace/mode/typescript');       
+    
+    options.tabSize && editor.setOption('tabSize', options.tabSize)
     
     
     // var outputEditor: AceAjax.Editor = ace.edit("output");
@@ -495,6 +506,35 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
     
 
     editor.addEventListener("change", onUpdateDocument);
+    options.typeDefenitionOnHovering && editor.container.addEventListener('mouseover', function (event: MouseEvent & { target: HTMLElement }) {
+        
+        if (event.target.classList.contains("ace_identifier")) {
+            
+            const startPoint: { pageX: number, pageY: number } = editor.renderer.textToScreenCoordinates(0, 0);
+            
+            //@ts-expect-error (types/ace need to be updated)
+            let cur: { column: number; row: number; } = editor.renderer.pixelToScreenCoordinates(event.clientX, event.clientY);
+
+            // let range = editor.session.getTextRange(new AceRange(0, 0, cur.row, cur.column));
+            // let arr = range.split("\n");
+            // let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0);
+
+            const positionIndex = editor.session.doc.positionToIndex(cur);
+            
+            let definitions = tsProject.languageService.getTypeDefinitionAtPosition(fileNavigator._active, positionIndex);
+            // let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
+            
+
+            if (definitions && definitions.length) {
+                
+                showType(definitions, event, startPoint, {positionIndex});
+
+                // event.target.setAttribute("data-type", typeDefenition);
+                // event.target.classList.add("hint");
+            }
+            
+        }
+    })
     editor.addEventListener("changeSelection", onChangeCursor);    
     
     if (options.signatureToolTip) {        
@@ -518,14 +558,15 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
                 refactor();
             }
         },
-        {
-            name: "indent",
-            bindKey: "Tab",
-            exec: function (editor) {
-                languageServiceIndent();
-            },
-            // multiSelectAction: "forEach"
-        }        
+        // {
+        //     name: "indent",
+        //     bindKey: "Tab",
+        //     exec: function (editor) {      
+        //         editor.indent()
+        //         // languageServiceIndent();
+        //     },
+        //     // multiSelectAction: "forEach"
+        // }
     ]);
 
     aceEditorPosition = new EditorPosition(editor);
@@ -607,6 +648,62 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
 
 
 
+function showType(
+    definitions: readonly ts.DefinitionInfo[], event: MouseEvent & { target: HTMLElement; }, startPoint: { pageX: number; pageY: number; }, info: {
+        positionIndex?: number, typeDefenition?: string }) {
+
+    const defenition = definitions[0];
+
+    const defPos = defenition.contextSpan || defenition.textSpan;
+
+    const typeDefenition = tsProject.languageServiceHost.getScriptContent(defenition.fileName).slice(
+        defPos.start, defPos.start + defPos.length
+    );
+
+    if (typeDefenition.startsWith("function") && (info && info.positionIndex)) {
+        let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, info.positionIndex);
+        showType(definitions, event, startPoint, { typeDefenition });
+        return;
+    }
+
+    // const hintElem = event.target.appendChild(document.createElement("div"));                
+    const hintElem: HTMLElement = editor.container.querySelector('.hint') || editor.container.appendChild(document.createElement("div"));
+    hintElem.className = 'hint';
+    if (~typeDefenition.indexOf('\n'))
+        hintElem.innerText = typeDefenition.split('\n').shift().replace('{', '').replace(/export( as)? /, '');
+    else
+        hintElem.innerHTML = typeDefenition 
+            .replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace("class", "<span class='__keyword'>class</span>")
+            .replace("function", "<span class='__keyword'>function</span>")
+            .replace(/(never|undefined|void)/g, "<span class='__type'>$1</span>")
+            .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
+            .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
+
+    if (info && info.typeDefenition) {
+        hintElem.innerHTML +=  '<hr/>' + info.typeDefenition
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace("class", "<span class='__keyword'>class</span>")
+            .replace("function", "<span class='__keyword'>function</span>")
+            .replace(/(never|undefined|void)/g, "<span class='__type'>$1</span>")
+            .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
+            .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");        
+    }
+    
+    console.log(typeDefenition);
+
+
+    hintElem.style.left = event.target.getBoundingClientRect().left - 16 + 'px';
+    hintElem.style.top = event.target.getBoundingClientRect().top - startPoint.pageY + 24 + "px";
+
+    let target = event.target;
+    event.target.addEventListener('mouseout', () => {
+        // hintElem.style.display = 'none';
+        editor.container.removeChild(hintElem);
+    }, { once: true });
+}
+
 /**
  * @description adds listener to changeCursor, which waits for the start of the function when the user writes
  * @param e 
@@ -624,7 +721,7 @@ function enableHinter(e: Event) {
     let pos = editor.getCursorPosition();
     let range = editor.session.getTextRange(new AceRange(0, 0, pos.row, pos.column));
     let arr = range.split('\n');
-    let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0);
+    let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0);   // TODO @check doc.positionToIndex(pos) ?
 
     /// RESEARCH lines:
 
@@ -650,6 +747,7 @@ function enableHinter(e: Event) {
 
             if (~['function', 'method'].indexOf(info[0].kind)) {
 
+                /// tsProject.languageServiceHost.getScriptContent(fileNavigator._active).substr(getDefinitionAtPosition()[0].contextSpan...) as alternative
                 let quickInfo = tsProject.languageService.getQuickInfoAtPosition(fileNavigator._active || "samples/greeter.ts", flatPos - 2);
 
                 if (quickInfo && Array.isArray(quickInfo.displayParts)) {

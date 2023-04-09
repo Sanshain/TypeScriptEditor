@@ -24,6 +24,42 @@
             opacity: 1;
             color: cadetblue;
         }
+
+        /* .ace_identifier{
+            position: relative;   
+        }
+
+        .ace_identifier.hint:hover{
+            color: gray;
+        } */
+
+        /* .ace_identifier  */
+        .hint{
+            /* content: attr(data-type); */
+            color: #ddd;
+            background-color: #333E;
+            position: absolute;
+            top: 100%;
+            left: 1em;
+            z-index: 10;
+            width: fit-content;
+            /* max-width: 400px;  */
+            max-width: 550px; 
+            /* text-decoration: underline; */
+        }     
+
+        .hint .__keyword{ color: rgb(125, 173, 245); }
+        .hint .__type { color: rgb(146, 238, 250); }
+
+        /* .ace_identifier.hint:hover::after{
+            content: attr(data-type);
+            color: #ddd;
+            background-color: #333;
+            position: absolute;
+            top: 100%;
+            left: 1em;            
+        } */
+        
     </style>
 </head>
 <body>
@@ -77,8 +113,8 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.8.3/typescript.min.js"></script> -->
 
   <!-- greater then 4.6.4 version throws the error 'Cannot read properties of undefined (reading 'target') from compilerOptions inside getEmitScriptTarget' -->  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.6.4/typescript.min.js"></script>
-  <!-- <script src="./scripts/lib/typescript_v4.6.4-min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.6.4/typescript.min.js"></script> -->
+  <script src="./scripts/lib/typescript_v4.6.4-min.js"></script>
     
     <!-- <script src="./scripts/lib/require.js" data-main="main" type="text/javascript"></script>   -->
 
@@ -100,7 +136,8 @@
                 _active: "samples/greeter.ts"
                 // _active: "app.tsx"
             },
-            autocompleteStart: 1
+            autocompleteStart: 1,
+            typeDefenitionOnHovering: true
         })
     </script>
 

@@ -2374,7 +2374,6 @@ var TypeScriptWorker = (function () {
             _this.sender.emit("compiled", jsOutput);
             var annotations = [];
             allDiagnostics.forEach(function (error) {
-                error.messageText['messageText'] || error.messageText;
                 var pos = DocumentPositionUtil.getPosition(_this.doc, error.start);
                 annotations.push({
                     row: pos.row,
