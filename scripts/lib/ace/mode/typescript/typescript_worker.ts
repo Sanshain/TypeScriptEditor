@@ -154,7 +154,7 @@ export class TypeScriptWorker {
     
     onUpdate = () => {
 
-        console.warn('onUpdate...');
+        // console.warn('onUpdate...');
         // debugger;
 
         // TODO: get the name of the actual file

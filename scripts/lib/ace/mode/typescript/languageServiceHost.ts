@@ -164,6 +164,7 @@ export function createLanguageServiceHost(currentDir: string, defaultLibFileName
      */
     function updateScript(fileName: string, content: string) {
         var script = fileNameToScript[fileName];
+        
         if (script) {
             if(script.getContent() == content){
                 return;
@@ -419,7 +420,7 @@ function createScriptInfo(content: string): ScriptInfo {
      * 
      * @param newContent the new content of the file associated to the script.
      */
-    function updateContent(newContent: string): void {
+    function updateContent(newContent: string): void {                
         if (newContent !== content) {
             content = newContent;
             _lineStartIsDirty = true;
@@ -458,12 +459,15 @@ function createScriptInfo(content: string): ScriptInfo {
      * Retrieve the script `_lineStarts`, recompute them if needed.
      */
     function getScriptSnapshot(): ts.IScriptSnapshot {
+
+        return ts.ScriptSnapshot.fromString(content);
+
         // save the state of the script
         var lineStarts = getLineStarts();
         var textSnapshot = content;
         var version = scriptVersion;
-        var snapshotRanges = editRanges.slice();
-        
+        var snapshotRanges = editRanges.slice();            
+
         /**
          * Retrieve the edits history between two script snapshot.
          * 

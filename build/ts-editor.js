@@ -2892,19 +2892,9 @@ var tsEditor = (function (exports) {
         var scriptVersion = 1;
         var editRanges = [];
         var isOpen = false;
-        var _lineStarts;
-        var _lineStartIsDirty = true;
-        function getLineStarts() {
-            if (_lineStartIsDirty) {
-                _lineStarts = ts.computeLineStarts(content);
-                _lineStartIsDirty = false;
-            }
-            return _lineStarts;
-        }
         function updateContent(newContent) {
             if (newContent !== content) {
                 content = newContent;
-                _lineStartIsDirty = true;
                 editRanges = [];
                 scriptVersion++;
             }
@@ -2914,7 +2904,6 @@ var tsEditor = (function (exports) {
             var middle = newText;
             var suffix = content.substring(limChar);
             content = prefix + middle + suffix;
-            _lineStartIsDirty = true;
             editRanges.push({
                 span: { start: minChar, length: limChar - minChar },
                 newLength: newText.length
@@ -2922,53 +2911,7 @@ var tsEditor = (function (exports) {
             scriptVersion++;
         }
         function getScriptSnapshot() {
-            getLineStarts();
-            var textSnapshot = content;
-            var version = scriptVersion;
-            editRanges.slice();
-            function getChangeRange(oldSnapshot) {
-                var unchanged = { span: { start: 0, length: 0 }, newLength: 0 };
-                function collapseChangesAcrossMultipleVersions(changes) {
-                    if (changes.length === 0) {
-                        return unchanged;
-                    }
-                    if (changes.length === 1) {
-                        return changes[0];
-                    }
-                    var change0 = changes[0];
-                    var oldStartN = change0.span.start;
-                    var oldEndN = change0.span.start + change0.span.length;
-                    var newEndN = oldStartN + change0.newLength;
-                    for (var i = 1; i < changes.length; i++) {
-                        var nextChange = changes[i];
-                        var oldStart1 = oldStartN;
-                        var oldEnd1 = oldEndN;
-                        var newEnd1 = newEndN;
-                        var oldStart2 = nextChange.span.start;
-                        var oldEnd2 = nextChange.span.start + nextChange.span.length;
-                        var newEnd2 = oldStart2 + nextChange.newLength;
-                        oldStartN = Math.min(oldStart1, oldStart2);
-                        oldEndN = Math.max(oldEnd1, oldEnd1 + (oldEnd2 - newEnd1));
-                        newEndN = Math.max(newEnd2, newEnd2 + (newEnd1 - oldEnd2));
-                    }
-                    return { span: { start: oldStartN, length: oldEndN - oldStartN }, newLength: newEndN - oldStartN };
-                }
-                var scriptVersion = oldSnapshot.version || 0;
-                if (scriptVersion === version) {
-                    return unchanged;
-                }
-                var initialEditRangeIndex = editRanges.length - (version - scriptVersion);
-                if (initialEditRangeIndex < 0) {
-                    return null;
-                }
-                var entries = editRanges.slice(initialEditRangeIndex);
-                return collapseChangesAcrossMultipleVersions(entries);
-            }
-            return {
-                getText: function (start, end) { return textSnapshot.substring(start, end); },
-                getLength: function () { return textSnapshot.length; },
-                getChangeRange: getChangeRange,
-            };
+            return ts.ScriptSnapshot.fromString(content);
         }
         return {
             getContent: function () { return content; },
@@ -3368,6 +3311,12 @@ var tsEditor = (function (exports) {
                 if (definitions && definitions.length) {
                     showType(definitions, event, startPoint, { positionIndex: positionIndex });
                 }
+                else {
+                    var definitions_1 = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
+                    if (definitions_1.length) {
+                        showType(definitions_1, event, startPoint, {});
+                    }
+                }
             }
         });
         editor.addEventListener("changeSelection", onChangeCursor);
@@ -3444,24 +3393,26 @@ var tsEditor = (function (exports) {
         var defPos = defenition.contextSpan || defenition.textSpan;
         var typeDefenition = tsProject.languageServiceHost.getScriptContent(defenition.fileName).slice(defPos.start, defPos.start + defPos.length);
         if (typeDefenition.startsWith("function") && (info && info.positionIndex)) {
-            var definitions_1 = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, info.positionIndex);
-            showType(definitions_1, event, startPoint, { typeDefenition: typeDefenition });
+            var definitions_2 = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, info.positionIndex);
+            showType(definitions_2, event, startPoint, { typeDefenition: typeDefenition });
             return;
         }
         var hintElem = editor.container.querySelector('.hint') || editor.container.appendChild(document.createElement("div"));
         hintElem.className = 'hint';
         if (~typeDefenition.indexOf('\n'))
             hintElem.innerText = typeDefenition.split('\n').shift().replace('{', '').replace(/export( as)? /, '');
-        else
-            hintElem.innerHTML = typeDefenition
-                .replace(/</g, "&lt;").replace(/>/g, "&gt;")
-                .replace("class", "<span class='__keyword'>class</span>")
-                .replace("function", "<span class='__keyword'>function</span>")
-                .replace(/(never|undefined|void)/g, "<span class='__type'>$1</span>")
-                .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
-                .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
-        if (info && info.typeDefenition) {
-            hintElem.innerHTML += '<hr/>' + info.typeDefenition
+        else {
+            if (~typeDefenition.indexOf(':'))
+                hintElem.innerHTML = typeDefenition
+                    .replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace("class", "<span class='__keyword'>class</span>")
+                    .replace("function", "<span class='__keyword'>function</span>")
+                    .replace(/(never|undefined|void)/g, "<span class='__type'>$1</span>")
+                    .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
+                    .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
+        }
+        if (info && info.typeDefenition && info.typeDefenition !== typeDefenition) {
+            hintElem.innerHTML += "<hr/>" + info.typeDefenition
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace("class", "<span class='__keyword'>class</span>")
@@ -3470,7 +3421,6 @@ var tsEditor = (function (exports) {
                 .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
                 .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
         }
-        console.log(typeDefenition);
         hintElem.style.left = event.target.getBoundingClientRect().left - 16 + 'px';
         hintElem.style.top = event.target.getBoundingClientRect().top - startPoint.pageY + 24 + "px";
         event.target;

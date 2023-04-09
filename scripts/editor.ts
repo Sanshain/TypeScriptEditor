@@ -532,6 +532,12 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
                 // event.target.setAttribute("data-type", typeDefenition);
                 // event.target.classList.add("hint");
             }
+            else {
+                let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
+                if (definitions.length) {
+                    showType(definitions, event, startPoint, {});
+                } 
+            }
             
         }
     })
@@ -671,14 +677,15 @@ function showType(
     hintElem.className = 'hint';
     if (~typeDefenition.indexOf('\n'))
         hintElem.innerText = typeDefenition.split('\n').shift().replace('{', '').replace(/export( as)? /, '');
-    else
-        hintElem.innerHTML = typeDefenition 
+    else {
+        if (~typeDefenition.indexOf(':')) hintElem.innerHTML = typeDefenition 
             .replace(/</g, "&lt;").replace(/>/g, "&gt;")
             .replace("class", "<span class='__keyword'>class</span>")
             .replace("function", "<span class='__keyword'>function</span>")
             .replace(/(never|undefined|void)/g, "<span class='__type'>$1</span>")
             .replace(/\:\s?(\w+)/g, ": <span class='__type'>$1</span>")
             .replace(/&lt;\s?(\w+)/g, "&lt;<span class='__type'>$1</span>");
+    }
 
     if (info && info.typeDefenition && info.typeDefenition !== typeDefenition) {
         hintElem.innerHTML += "<hr/>" + info.typeDefenition
