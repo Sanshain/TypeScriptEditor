@@ -181,12 +181,12 @@ export class TypeScriptWorker {
         var annotations = [];
         allDiagnostics.forEach((error) => {
             
-            // const errorText = error.messageText['messageText'] || error.messageText;
+            const errorText = error.messageText['messageText'] || error.messageText;
             
-            // if (!!~errorText.indexOf("-runtime'")) {
-            //     console.warn(errorText);
-            //     return;
-            // }                
+            if (!!~errorText.indexOf("-runtime'")) {
+                console.warn(errorText);
+                return;
+            }                
 
             var pos = DocumentPositionUtil.getPosition(this.doc, error.start);
             

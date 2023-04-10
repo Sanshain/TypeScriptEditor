@@ -1,4 +1,4 @@
-declare type InitialOptions = ({
+type InitialOptions = ({
     editor?: AceAjax.Editor;
     selector?: undefined;
 } | {
@@ -7,17 +7,19 @@ declare type InitialOptions = ({
 }) & {
     entryFile?: string;
     content?: string;
-    signatureToolTip?: boolean;
-    fontSize?: string;
     libFiles?: string[];
     aliasedLibFiles?: Record<string, string>;
-    position?: AceAjax.Position;
     fileNavigator?: Record<string, string> & {
         _active: string;
     };
+    signatureToolTip?: boolean;
+    typeDefenitionOnHovering?: boolean;
     autocompleteStart?: number;
+    position?: AceAjax.Position;
+    fontSize?: string;
+    tabSize?: number;
 };
-declare function loadLibFiles(sourceFiles: string[], aliases?: Record<string, string>): ts.LanguageServiceHost;
+declare function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>): ts.LanguageServiceHost;
 declare function loadContent(filename: string, content: string, keepExistContent?: boolean): void;
 declare function getFileContent(name: string): string;
 declare function getSelectFileName(): string;

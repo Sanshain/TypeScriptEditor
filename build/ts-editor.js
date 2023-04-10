@@ -2932,7 +2932,7 @@ var tsEditor = (function (exports) {
             this.languageServiceHost = createLanguageServiceHost('', "typescripts/lib.d.ts");
             this.languageService = ts.createLanguageService(this.languageServiceHost, ts.createDocumentRegistry());
             this.languageServiceHost.setCompilationSettings({
-                jsx: 5,
+                jsx: 4,
                 baseUrl: "./",
                 esModuleInterop: true
             });
@@ -3075,10 +3075,7 @@ var tsEditor = (function (exports) {
     var errorMarkers = [];
     var tsProject = getTSProject();
     function loadLibFiles(sourceFiles, aliases) {
-        aliases = aliases || {
-            "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
-            "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",
-        };
+        aliases = aliases || {};
         var libFiles = sourceFiles
             ? sourceFiles.concat(Object.keys(aliases))
             : [
@@ -3086,10 +3083,6 @@ var tsEditor = (function (exports) {
                 "/typescripts/4.9.5/lib.es5.d.ts",
                 "/typescripts/4.9.5/lib.dom.iterable.d.ts",
                 "/typescripts/4.9.5/es2015.core.d.ts",
-                "/node_modules/@types/react/index.d.ts",
-                "/node_modules/@types/react-dom/index.d.ts",
-                "react/jsx-runtime.d.ts",
-                "react/jsx-dev-runtime.d.ts",
             ];
         libFiles.forEach(function (libname) {
             if (tsProject.languageServiceHost.hasScript(libname) === false) {

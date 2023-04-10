@@ -82,10 +82,11 @@ function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>):
     // Record<'vue', './types/vue'>
 
     aliases = aliases || {
-      "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
-      "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",      
-      //   "react-dom": "/node_modules/@types/react-dom/index.d.ts",
-      //   react: "/node_modules/@types/react/index.d.ts",
+        // "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
+        // "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",  
+      
+        // "react-dom": "/node_modules/@types/react-dom/index.d.ts",
+        // react: "/node_modules/@types/react/index.d.ts",
     };
 
     const libFiles = sourceFiles
@@ -101,10 +102,12 @@ function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>):
           // "/typescripts/4.9.5/lib.es2015.proxy.d.ts",
           // "/typescripts/4.9.5/lib.es2015.reflect.d.ts",
 
-          "/node_modules/@types/react/index.d.ts",
-          "/node_modules/@types/react-dom/index.d.ts",
-          "react/jsx-runtime.d.ts",
-          "react/jsx-dev-runtime.d.ts",
+            /// react types:
+
+            //   "/node_modules/@types/react/index.d.ts",
+            //   "/node_modules/@types/react-dom/index.d.ts",
+            //   "react/jsx-runtime.d.ts",
+            //   "react/jsx-dev-runtime.d.ts",
         ];
     
     

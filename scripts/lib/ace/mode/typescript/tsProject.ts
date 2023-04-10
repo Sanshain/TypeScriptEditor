@@ -38,8 +38,8 @@ class TsProject {
         ));
         this.languageServiceHost.setCompilationSettings({
           // jsx: 1,
-          //   jsx: 4,
-          jsx: 5,
+            jsx: 4,
+        //   jsx: 5,
           baseUrl: "./",
           esModuleInterop: true
           // rootDir: ''
