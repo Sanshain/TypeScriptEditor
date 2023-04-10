@@ -186,7 +186,7 @@ export class TypeScriptWorker {
             if (!!~errorText.indexOf("-runtime'")) {
                 console.warn(errorText);
                 return;
-            }                
+            }
 
             var pos = DocumentPositionUtil.getPosition(this.doc, error.start);
             

@@ -294,7 +294,7 @@ const tsBuildConfig = {
 
 
 export default [    
-    tsWorkerBuildConfig,
+    // tsWorkerBuildConfig,
     tsBuildConfig,
 
 

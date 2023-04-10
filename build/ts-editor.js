@@ -3296,7 +3296,8 @@ var tsEditor = (function (exports) {
         }
         editor.addEventListener("change", onUpdateDocument);
         options.typeDefenitionOnHovering && editor.container.addEventListener('mouseover', function (event) {
-            if (event.target.classList.contains("ace_identifier")) {
+            var selector = typeof options.typeDefenitionOnHovering == 'object' ? options.typeDefenitionOnHovering.selector : 'ace_identifier';
+            if (event.target.classList.contains(selector)) {
                 var startPoint = editor.renderer.textToScreenCoordinates(0, 0);
                 var cur = editor.renderer.pixelToScreenCoordinates(event.clientX, event.clientY);
                 var positionIndex = editor.session.doc.positionToIndex(cur);

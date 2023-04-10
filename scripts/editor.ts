@@ -17,7 +17,7 @@ type InitialOptions = ({ editor?: AceAjax.Editor, selector?: undefined } | { edi
     fileNavigator?: Record<string, string> & { _active: string }        // ? merge with aliasedLibFiles 
     /// hinting:    
     signatureToolTip?: boolean,
-    typeDefenitionOnHovering?: boolean,    
+    typeDefenitionOnHovering?: boolean | {selector: string},    
     autocompleteStart?: number,        
     /// common ui settings:
     position?: AceAjax.Position,                                        // ?
@@ -511,7 +511,9 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
     editor.addEventListener("change", onUpdateDocument);
     options.typeDefenitionOnHovering && editor.container.addEventListener('mouseover', function (event: MouseEvent & { target: HTMLElement }) {
         
-        if (event.target.classList.contains("ace_identifier")) {
+        const selector = typeof options.typeDefenitionOnHovering == 'object' ? options.typeDefenitionOnHovering.selector : 'ace_identifier';
+
+        if (event.target.classList.contains(selector)) {
             
             const startPoint: { pageX: number, pageY: number } = editor.renderer.textToScreenCoordinates(0, 0);
             
@@ -629,7 +631,6 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
 
     editor.getSession().on("compileErrors", closuredEvents["compileErrors"] = function (ev) {
         var session = editor.getSession();
-        
         errorMarkers.forEach(function (id){
             session.removeMarker(id);
         });
@@ -644,8 +645,12 @@ export function initialize(options: InitialOptions): [typeof tsServiceHandler, A
             var getpos = aceEditorPosition.getAcePositionFromChars;
             var start = getpos(error.minChar);
             var end = getpos(error.limChar);
+            // debugger
             var range = new AceRange(start.row, start.column, end.row, end.column);
-            errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));            
+            errorMarkers.push(session.addMarker(
+                range, "typescript-error", "text",
+                true
+            ));       
         });
     });    
     

@@ -13,7 +13,9 @@ type InitialOptions = ({
         _active: string;
     };
     signatureToolTip?: boolean;
-    typeDefenitionOnHovering?: boolean;
+    typeDefenitionOnHovering?: boolean | {
+        selector: string;
+    };
     autocompleteStart?: number;
     position?: AceAjax.Position;
     fontSize?: string;
