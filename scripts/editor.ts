@@ -82,8 +82,8 @@ function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>):
     // Record<'vue', './types/vue'>
 
     aliases = aliases || {
-        // "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
-        // "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",  
+        "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
+        "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",  
       
         // "react-dom": "/node_modules/@types/react-dom/index.d.ts",
         // react: "/node_modules/@types/react/index.d.ts",
@@ -104,10 +104,10 @@ function loadLibFiles(sourceFiles?: string[], aliases?: Record<string, string>):
 
             /// react types:
 
-            //   "/node_modules/@types/react/index.d.ts",
-            //   "/node_modules/@types/react-dom/index.d.ts",
-            //   "react/jsx-runtime.d.ts",
-            //   "react/jsx-dev-runtime.d.ts",
+              "/node_modules/@types/react/index.d.ts",
+              "/node_modules/@types/react-dom/index.d.ts",
+              "react/jsx-runtime.d.ts",
+              "react/jsx-dev-runtime.d.ts",
         ];
     
     
@@ -767,13 +767,21 @@ function enableHinter(e: Event) {
 
                 if (quickInfo && Array.isArray(quickInfo.displayParts)) {
                     let params = quickInfo.displayParts.filter(k => k.kind == 'parameterName').map(k => k.text);
+                    // debugger
+                    setTimeout(() => {
+                        // const textInputBound: DOMRect = editor['textInput'].getElement().getBoundingClientRect();
+                        const pos = editor.getCursorPosition();
+                        const coord: { pageX: number, pageY: number } = editor.renderer.textToScreenCoordinates(pos.row, pos.column);                        
+                        
+                        signatureToolTip = editor.container.appendChild(document.createElement('div'));
+                        signatureToolTip.className = 'tooltip';
+                        // signatureToolTip.style.top = textInputBound.top + 2 + 'px';
+                        // signatureToolTip.style.left = textInputBound.left + 10 + 'px';
 
-                    const textInputBound: DOMRect = editor['textInput'].getElement().getBoundingClientRect();
-                    signatureToolTip = editor.container.appendChild(document.createElement('div'));
-                    signatureToolTip.className = 'tooltip';
-                    signatureToolTip.style.top = textInputBound.top + 2 + 'px';
-                    signatureToolTip.style.left = textInputBound.left + 10 + 'px';
-                    signatureToolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')';
+                        signatureToolTip.style.left = coord.pageX  + 2 + "px";
+                        signatureToolTip.style.top = coord.pageY + 20 + "px";                        
+                        signatureToolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')';
+                    })
                 }
             }
         }

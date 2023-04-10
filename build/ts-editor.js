@@ -3075,7 +3075,10 @@ var tsEditor = (function (exports) {
     var errorMarkers = [];
     var tsProject = getTSProject();
     function loadLibFiles(sourceFiles, aliases) {
-        aliases = aliases || {};
+        aliases = aliases || {
+            "react/jsx-runtime.d.ts": "/node_modules/@types/react/jsx-runtime.d.ts",
+            "react/jsx-dev-runtime.d.ts": "/node_modules/@types/react/jsx-dev-runtime.d.ts",
+        };
         var libFiles = sourceFiles
             ? sourceFiles.concat(Object.keys(aliases))
             : [
@@ -3083,6 +3086,10 @@ var tsEditor = (function (exports) {
                 "/typescripts/4.9.5/lib.es5.d.ts",
                 "/typescripts/4.9.5/lib.dom.iterable.d.ts",
                 "/typescripts/4.9.5/es2015.core.d.ts",
+                "/node_modules/@types/react/index.d.ts",
+                "/node_modules/@types/react-dom/index.d.ts",
+                "react/jsx-runtime.d.ts",
+                "react/jsx-dev-runtime.d.ts",
             ];
         libFiles.forEach(function (libname) {
             if (tsProject.languageServiceHost.hasScript(libname) === false) {
@@ -3436,18 +3443,21 @@ var tsEditor = (function (exports) {
         var flatPos = arr.length + arr.reduce(function (acc, line) { return acc + line.length; }, 0);
         var token = editor.session.getTokenAt(pos.row, pos.column);
         if (token && token.value == '(') {
-            var info = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active || "samples/greeter.ts", flatPos - 2);
-            if (info && info.length) {
-                if (~['function', 'method'].indexOf(info[0].kind)) {
+            var info_1 = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active || "samples/greeter.ts", flatPos - 2);
+            if (info_1 && info_1.length) {
+                if (~['function', 'method'].indexOf(info_1[0].kind)) {
                     var quickInfo = tsProject.languageService.getQuickInfoAtPosition(fileNavigator._active || "samples/greeter.ts", flatPos - 2);
                     if (quickInfo && Array.isArray(quickInfo.displayParts)) {
-                        var params = quickInfo.displayParts.filter(function (k) { return k.kind == 'parameterName'; }).map(function (k) { return k.text; });
-                        var textInputBound = editor['textInput'].getElement().getBoundingClientRect();
-                        signatureToolTip = editor.container.appendChild(document.createElement('div'));
-                        signatureToolTip.className = 'tooltip';
-                        signatureToolTip.style.top = textInputBound.top + 2 + 'px';
-                        signatureToolTip.style.left = textInputBound.left + 10 + 'px';
-                        signatureToolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')';
+                        var params_1 = quickInfo.displayParts.filter(function (k) { return k.kind == 'parameterName'; }).map(function (k) { return k.text; });
+                        setTimeout(function () {
+                            var pos = editor.getCursorPosition();
+                            var coord = editor.renderer.textToScreenCoordinates(pos.row, pos.column);
+                            signatureToolTip = editor.container.appendChild(document.createElement('div'));
+                            signatureToolTip.className = 'tooltip';
+                            signatureToolTip.style.left = coord.pageX + 2 + "px";
+                            signatureToolTip.style.top = coord.pageY + 20 + "px";
+                            signatureToolTip.innerText = info_1[0].name + '(' + params_1.toString().split(',').join(', ') + ')';
+                        });
                     }
                 }
             }
