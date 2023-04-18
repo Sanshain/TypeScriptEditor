@@ -459,6 +459,11 @@ export function dropMode(editor: AceAjax.Editor): AceAjax.Editor {
     return editor;
 }
 
+type AceTSEditorExtends = {
+    $worker?: {
+        emit(cmd: "addLibrary" | "removeLibrary" | "updateModule", data: { data: unknown }): void
+    }
+}
 
 /**
  * 
@@ -468,196 +473,189 @@ export function dropMode(editor: AceAjax.Editor): AceAjax.Editor {
  * 
  */
 // export function initialize(options: InitialOptions): [ts.LanguageServiceHost, AceAjax.Editor] {
-export function initialize(options: InitialOptions): [typeof tsServiceHandler, AceAjax.Editor] {
-    
-    options = options || {}
-    fileNavigator = options.fileNavigator = options.fileNavigator || {
-        _active: options.entryFile || 'app.ts'
-    }
-    const selector = options.selector || "editor";
-    
-    editor = options.editor || ace.edit(selector);
-    if (!options.editor) editor.setTheme("ace/theme/monokai");    
-    editor.getSession().setMode('ace/mode/typescript');       
-    
-    options.tabSize && editor.setOption('tabSize', options.tabSize)
-    
-    
-    // var outputEditor: AceAjax.Editor = ace.edit("output");
-    // outputEditor.setTheme("ace/theme/monokai");
-    // outputEditor.getSession().setMode('ace/mode/javascript');
+export function initialize(options: InitialOptions): [typeof tsServiceHandler, AceAjax.Editor & AceTSEditorExtends] {
+           options = options || {};
+           fileNavigator = options.fileNavigator = options.fileNavigator || {
+               _active: options.entryFile || "app.ts"
+           };
+           const selector = options.selector || "editor";
 
+           editor = options.editor || ace.edit(selector);
+           if (!options.editor) editor.setTheme("ace/theme/monokai");
+           editor.getSession().setMode("ace/mode/typescript");
 
-    if (selector) {
+           options.tabSize && editor.setOption("tabSize", options.tabSize);
 
-        let wrapper = document.getElementById(selector)        
-        if (wrapper) {
-            wrapper.style.fontSize = options.fontSize || '14px';
-        }
-    }
+           // var outputEditor: AceAjax.Editor = ace.edit("output");
+           // outputEditor.setTheme("ace/theme/monokai");
+           // outputEditor.getSession().setMode('ace/mode/javascript');
 
-    let languageService = loadLibFiles(options.libFiles, options.aliasedLibFiles);
-    if (options.content || options.editor) {
-        loadContent(options.entryFile || options.fileNavigator._active || 'app.ts', options.content || options.editor.getValue(), !!options.editor)
-    }
-    // if DEBUG
-    else if(!options.editor) {        
-        // if (options.contentFile)
-        loadFile(options.entryFile || "samples/greeter.ts");
-    }
-    // endif
-    
+           if (selector) {
+               let wrapper = document.getElementById(selector);
+               if (wrapper) {
+                   wrapper.style.fontSize = options.fontSize || "14px";
+               }
+           }
 
-    editor.addEventListener("change", onUpdateDocument);
-    options.typeDefenitionOnHovering && editor.container.addEventListener('mouseover', function (event: MouseEvent & { target: HTMLElement }) {
-        
-        const selector = typeof options.typeDefenitionOnHovering == 'object' ? options.typeDefenitionOnHovering.selector : 'ace_identifier';
+           let languageService = loadLibFiles(options.libFiles, options.aliasedLibFiles);
+           if (options.content || options.editor) {
+               loadContent(options.entryFile || options.fileNavigator._active || "app.ts", options.content || options.editor.getValue(), !!options.editor);
+           }
+           // if DEBUG
+           else if (!options.editor) {
+               // if (options.contentFile)
+               loadFile(options.entryFile || "samples/greeter.ts");
+           }
+           // endif
 
-        if (event.target.classList.contains(selector)) {
-            
-            const startPoint: { pageX: number, pageY: number } = editor.renderer.textToScreenCoordinates(0, 0);
-            
-            //@ts-expect-error (types/ace need to be updated)
-            let cur: { column: number; row: number; } = editor.renderer.pixelToScreenCoordinates(event.clientX, event.clientY);
+           editor.addEventListener("change", onUpdateDocument);
+           options.typeDefenitionOnHovering &&
+               editor.container.addEventListener("mouseover", function(event: MouseEvent & { target: HTMLElement }) {
+                   const selector = typeof options.typeDefenitionOnHovering == "object" ? options.typeDefenitionOnHovering.selector : "ace_identifier";
 
-            // let range = editor.session.getTextRange(new AceRange(0, 0, cur.row, cur.column));
-            // let arr = range.split("\n");
-            // let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0);
+                   if (event.target.classList.contains(selector)) {
+                       const startPoint: { pageX: number; pageY: number } = editor.renderer.textToScreenCoordinates(0, 0);
 
-            const positionIndex = editor.session.doc.positionToIndex(cur);
-            
-            let definitions = tsProject.languageService.getTypeDefinitionAtPosition(fileNavigator._active, positionIndex);
-            // let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
-            
+                       //@ts-expect-error (types/ace need to be updated)
+                       let cur: { column: number; row: number } = editor.renderer.pixelToScreenCoordinates(event.clientX, event.clientY);
 
-            if (definitions && definitions.length) {
-                
-                showType(definitions, event, startPoint, {positionIndex});
+                       // let range = editor.session.getTextRange(new AceRange(0, 0, cur.row, cur.column));
+                       // let arr = range.split("\n");
+                       // let flatPos = arr.length + arr.reduce((acc, line) => acc + line.length, 0);
 
-                // event.target.setAttribute("data-type", typeDefenition);
-                // event.target.classList.add("hint");
-            }
-            else {
-                let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
-                if (definitions.length) {
-                    showType(definitions, event, startPoint, {});
-                } 
-            }
-            
-        }
-    })
-    editor.addEventListener("changeSelection", onChangeCursor);    
-    
-    if (options.signatureToolTip) {        
-        editor.session.selection.on('changeCursor', enableHinter);
-    }
+                       const positionIndex = editor.session.doc.positionToIndex(cur);
 
-    if (options.position) editor.moveCursorTo(options.position.row, options.position.column)
+                       let definitions = tsProject.languageService.getTypeDefinitionAtPosition(fileNavigator._active, positionIndex);
+                       // let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
 
-    editor.commands.addCommands([
-        {
-            name:"autoComplete",
-            bindKey:"Ctrl-Space",
-            exec:function(editor) {
-                startAutoComplete(editor);
-            }
-        },
-        {
-            name: "refactor",
-            bindKey: "F2",
-            exec: function (editor) {
-                refactor();
-            }
-        },
-        // {
-        //     name: "indent",
-        //     bindKey: "Tab",
-        //     exec: function (editor) {      
-        //         editor.indent()
-        //         // languageServiceIndent();
-        //     },
-        //     // multiSelectAction: "forEach"
-        // }
-    ]);
+                       if (definitions && definitions.length) {
+                           showType(definitions, event, startPoint, { positionIndex });
 
-    aceEditorPosition = new EditorPosition(editor);
-    autoComplete = new AutoComplete(editor, selectFileName, new CompletionService(editor));
+                           // event.target.setAttribute("data-type", typeDefenition);
+                           // event.target.classList.add("hint");
+                       } else {
+                           let definitions = tsProject.languageService.getDefinitionAtPosition(fileNavigator._active, positionIndex);
+                           if (definitions.length) {
+                               showType(definitions, event, startPoint, {});
+                           }
+                       }
+                   }
+               });
+           editor.addEventListener("changeSelection", onChangeCursor);
 
-    // override editor onTextInput
-    originalTextInput = editor.onTextInput;
-    
-    editor.onTextInput = function (text) {
-        originalTextInput.call(editor, text);  
+           if (options.signatureToolTip) {
+               editor.session.selection.on("changeCursor", enableHinter);
+           }
 
-        let pos = editor.getCursorPosition();
-        let token = editor.session.getTokenAt(pos.row, pos.column);
-        
-        console.log(token && token.value.length);
-        console.log(options.autocompleteStart);
-        
-        
-        if (token && token.value.length >= (options.autocompleteStart || 2) && token.value.match(/[\w\d_\$]+/)) {            
-            // token.value.match(/\w[\w\d_\$]+/);
-            
-            // TODO?? with debounce
-            editor.execCommand("autoComplete");
-            return
-        }
+           if (options.position) editor.moveCursorTo(options.position.row, options.position.column);
 
-        if(text == "."){
-            editor.execCommand("autoComplete");
+           editor.commands.addCommands([
+               {
+                   name: "autoComplete",
+                   bindKey: "Ctrl-Space",
+                   exec: function(editor) {
+                       startAutoComplete(editor);
+                   }
+               },
+               {
+                   name: "refactor",
+                   bindKey: "F2",
+                   exec: function(editor) {
+                       refactor();
+                   }
+               }
+               // {
+               //     name: "indent",
+               //     bindKey: "Tab",
+               //     exec: function (editor) {
+               //         editor.indent()
+               //         // languageServiceIndent();
+               //     },
+               //     // multiSelectAction: "forEach"
+               // }
+           ]);
 
-        }else if (editor.getSession().getDocument().isNewLine(text)) {
-            var lineNumber = editor.getCursorPosition().row;
-            const prettierOptions: ts.FormatCodeOptions = defaultFormatCodeOptions();
-            var indent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, prettierOptions);
-            
-            if(indent > 0) {
-                editor.commands.exec("inserttext", editor, { text: " ", times: prettierOptions.IndentSize - 5});
-            }
-        }
-    };
+           aceEditorPosition = new EditorPosition(editor);
+           autoComplete = new AutoComplete(editor, selectFileName, new CompletionService(editor));
 
-    editor.addEventListener("mousedown", closuredEvents["mousedown"] = function (e) {
-        
-        if(autoComplete.isActive()){
-            autoComplete.deactivate();
-        }
-    });
+           // override editor onTextInput
+           originalTextInput = editor.onTextInput;
 
-    editor.getSession().on("compiled", function(e){
-        // outputEditor.getSession().doc.setValue(e.data);
-    });
+           editor.onTextInput = function(text) {
+               originalTextInput.call(editor, text);
 
-    editor.getSession().on("compileErrors", closuredEvents["compileErrors"] = function (ev) {
-        var session = editor.getSession();
-        errorMarkers.forEach(function (id){
-            session.removeMarker(id);
-        });
-        
-        ev.data.forEach(function (error: { minChar: number; limChar: number; text: string }) {
-            
-            // if (!!~error.text.indexOf("-runtime'")) {
-            //     console.warn(error.text);
-            //     return;
-            // }
+               let pos = editor.getCursorPosition();
+               let token = editor.session.getTokenAt(pos.row, pos.column);
 
-            var getpos = aceEditorPosition.getAcePositionFromChars;
-            var start = getpos(error.minChar);
-            var end = getpos(error.limChar);
-            // debugger
-            var range = new AceRange(start.row, start.column, end.row, end.column);
-            errorMarkers.push(session.addMarker(
-                range, "typescript-error", "text",
-                true
-            ));       
-        });
-    });    
-    
-    // return [languageService, editor];
-    return [tsServiceHandler, editor];
+               console.log(token && token.value.length);
+               console.log(options.autocompleteStart);
 
-}
+               if (token && token.value.length >= (options.autocompleteStart || 2) && token.value.match(/[\w\d_\$]+/)) {
+                   // token.value.match(/\w[\w\d_\$]+/);
+
+                   // TODO?? with debounce
+                   editor.execCommand("autoComplete");
+                   return;
+               }
+
+               if (text == ".") {
+                   editor.execCommand("autoComplete");
+               } else if (
+                   editor
+                       .getSession()
+                       .getDocument()
+                       .isNewLine(text)
+               ) {
+                   var lineNumber = editor.getCursorPosition().row;
+                   const prettierOptions: ts.FormatCodeOptions = defaultFormatCodeOptions();
+                   var indent = tsProject.languageService.getIndentationAtPosition(selectFileName, lineNumber, prettierOptions);
+
+                   if (indent > 0) {
+                       editor.commands.exec("inserttext", editor, { text: " ", times: prettierOptions.IndentSize - 5 });
+                   }
+               }
+           };
+
+           editor.addEventListener(
+               "mousedown",
+               (closuredEvents["mousedown"] = function(e) {
+                   if (autoComplete.isActive()) {
+                       autoComplete.deactivate();
+                   }
+               })
+           );
+
+           editor.getSession().on("compiled", function(e) {
+               // outputEditor.getSession().doc.setValue(e.data);
+           });
+
+           editor.getSession().on(
+               "compileErrors",
+               (closuredEvents["compileErrors"] = function(ev) {
+                   var session = editor.getSession();
+                   errorMarkers.forEach(function(id) {
+                       session.removeMarker(id);
+                   });
+
+                   ev.data.forEach(function(error: { minChar: number; limChar: number; text: string }) {
+                       // if (!!~error.text.indexOf("-runtime'")) {
+                       //     console.warn(error.text);
+                       //     return;
+                       // }
+
+                       var getpos = aceEditorPosition.getAcePositionFromChars;
+                       var start = getpos(error.minChar);
+                       var end = getpos(error.limChar);
+                       // debugger
+                       var range = new AceRange(start.row, start.column, end.row, end.column);
+                       errorMarkers.push(session.addMarker(range, "typescript-error", "text", true));
+                   });
+               })
+           );
+
+           // return [languageService, editor];
+           return [tsServiceHandler, editor];
+       }
 
 
 
@@ -709,8 +707,8 @@ function showType(
     // console.log(typeDefenition);
 
 
-    hintElem.style.left = event.target.getBoundingClientRect().left - 16 + 'px';
-    hintElem.style.top = event.target.getBoundingClientRect().top - startPoint.pageY + 24 + "px";
+    hintElem.style.left = event.target.getBoundingClientRect().left - 8 + 'px';
+    hintElem.style.top = event.target.getBoundingClientRect().top - startPoint.pageY + 20 + "px";
 
     let target = event.target;
     event.target.addEventListener('mouseout', () => {
@@ -778,7 +776,7 @@ function enableHinter(e: Event) {
                         // signatureToolTip.style.top = textInputBound.top + 2 + 'px';
                         // signatureToolTip.style.left = textInputBound.left + 10 + 'px';
 
-                        signatureToolTip.style.left = coord.pageX  + 2 + "px";
+                        signatureToolTip.style.left = coord.pageX + 2 + "px";
                         signatureToolTip.style.top = coord.pageY + 20 + "px";                        
                         signatureToolTip.innerText = info[0].name + '(' + params.toString().split(',').join(', ') + ')';
                     })

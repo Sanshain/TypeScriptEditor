@@ -41,6 +41,13 @@ declare const tsServiceHandler: {
     _$editFile: (fileName: string, minChar: number, limChar: number, newText: string) => void;
 };
 declare function dropMode(editor: AceAjax.Editor): AceAjax.Editor;
-declare function initialize(options: InitialOptions): [typeof tsServiceHandler, AceAjax.Editor];
+type AceTSEditorExtends = {
+    $worker?: {
+        emit(cmd: "addLibrary" | "removeLibrary" | "updateModule", data: {
+            data: unknown;
+        }): void;
+    };
+};
+declare function initialize(options: InitialOptions): [typeof tsServiceHandler, AceAjax.Editor & AceTSEditorExtends];
 
 export { dropMode, initialize };
